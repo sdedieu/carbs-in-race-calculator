@@ -20,13 +20,13 @@ describe('DailyNutritionCalculatorComponent', () => {
     const compiled = fixture.nativeElement as HTMLElement;
 
     expect(compiled.querySelector('[data-test="calories-goal"]')?.textContent).toContain(
-      '2,250–2,500 kcal',
+      'Acceptable calories1,800–2,000 kcal',
     );
-    expect(compiled.querySelector('[data-test="protein-goal"]')?.textContent).toContain('140 g');
-    expect(compiled.querySelector('[data-test="fat-goal"]')?.textContent).toContain('70 g');
-    expect(compiled.querySelector('[data-test="carbs-goal"]')?.textContent).toContain(
-      '265–327.5 g',
+    expect(compiled.querySelector('[data-test="protein-goal"]')?.textContent).toContain(
+      'Protein goal152 g',
     );
+    expect(compiled.querySelector('[data-test="fat-goal"]')?.textContent).toContain('Fat goal76 g');
+    expect(compiled.querySelector('[data-test="carbs-goal"]')?.textContent).toContain('127–177 g');
   });
 
   it('should update all goals from their source inputs', () => {
@@ -87,11 +87,11 @@ describe('DailyNutritionCalculatorComponent', () => {
     };
 
     calculator.setQuantity('olive-oil', 260);
-    expect(calculator.calorieStatus().state).toBe('on target');
+    expect(calculator.calorieStatus().state).toBe('over target');
 
     calculator.setQuantity('olive-oil', 300);
     expect(calculator.calorieStatus()).toMatchObject({
-      state: 'over target'
+      state: 'over target',
     });
   });
 

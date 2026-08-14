@@ -11,8 +11,8 @@ describe('ProductService', () => {
   });
 
   it('should expose one catalog and filter products by daily and race use', () => {
-    expect(service.allProducts()).toHaveLength(19);
-    expect(service.dailyProducts()).toHaveLength(11);
+    expect(service.allProducts()).toHaveLength(21);
+    expect(service.dailyProducts()).toHaveLength(13);
     expect(service.raceProducts()).toHaveLength(9);
     expect(service.dailyProducts().every((product) => product.type !== 'race')).toBe(true);
     expect(service.raceProducts().every((product) => product.type !== 'daily')).toBe(true);
@@ -76,7 +76,7 @@ describe('ProductService', () => {
     const allQuantities = service.createEmptyQuantities();
     const raceQuantities = service.createEmptyQuantities(service.raceProducts());
 
-    expect(Object.keys(allQuantities)).toHaveLength(19);
+    expect(Object.keys(allQuantities)).toHaveLength(21);
     expect(Object.values(allQuantities).every((quantity) => quantity === 0)).toBe(true);
     expect(Object.keys(raceQuantities)).toHaveLength(9);
     expect(raceQuantities['banana']).toBe(0);

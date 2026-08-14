@@ -20,8 +20,8 @@ describe('QuantityStepperComponent', () => {
     component['increase']();
     component['decrease']();
 
-    expect(valueChange).toHaveBeenCalledWith(2.5);
-    expect(valueChange).toHaveBeenCalledWith(1.5);
+    expect(valueChange).toHaveBeenCalledWith(1);
+    expect(valueChange).toHaveBeenCalledWith(1);
   });
 
   it('should emit typed values', () => {

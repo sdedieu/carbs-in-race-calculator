@@ -21,7 +21,7 @@ const PRODUCTS: ReadonlyArray<Product> = Object.freeze([
     id: 'maurten-gel-100-caf-100',
     brand: 'Maurten',
     name: 'Gel 100 Caf 100',
-    isForRace: true,
+    type: 'race',
     kind: 'gel',
     serving: '1 sachet, 40 g',
     servingGrams: 40,
@@ -41,7 +41,7 @@ const PRODUCTS: ReadonlyArray<Product> = Object.freeze([
     id: 'maurten-gel-160',
     brand: 'Maurten',
     name: 'Gel 160',
-    isForRace: true,
+    type: 'race',
     kind: 'gel',
     serving: '1 sachet, 65 g',
     servingGrams: 65,
@@ -60,7 +60,7 @@ const PRODUCTS: ReadonlyArray<Product> = Object.freeze([
     id: 'maurten-drink-mix-320-caf-100',
     brand: 'Maurten',
     name: 'Drink Mix 320 Caf 100',
-    isForRace: true,
+    type: 'race',
     kind: 'drink',
     serving: '1 sachet in 500 ml, 83 g',
     servingGrams: 83,
@@ -80,7 +80,7 @@ const PRODUCTS: ReadonlyArray<Product> = Object.freeze([
     id: 'maurten-solid-160',
     brand: 'Maurten',
     name: 'Solid 160',
-    isForRace: true,
+    type: 'race',
     kind: 'solid',
     serving: '1 bar, 55 g',
     servingGrams: 55,
@@ -102,7 +102,7 @@ const PRODUCTS: ReadonlyArray<Product> = Object.freeze([
     id: 'maurten-solid-c-160',
     brand: 'Maurten',
     name: 'Solid C 160',
-    isForRace: true,
+    type: 'race',
     kind: 'solid',
     serving: '1 bar, 55 g',
     servingGrams: 55,
@@ -124,7 +124,7 @@ const PRODUCTS: ReadonlyArray<Product> = Object.freeze([
     id: 'baouw-puree-raspberry-strawberry-basil',
     brand: 'Baouw',
     name: 'Energy Purée Raspberry Strawberry Basil',
-    isForRace: true,
+    type: 'race',
     kind: 'puree',
     serving: '1 purée, 90 g',
     servingGrams: 90,
@@ -150,7 +150,7 @@ const PRODUCTS: ReadonlyArray<Product> = Object.freeze([
     id: 'baouw-electrolytes-blackberry',
     brand: 'Baouw',
     name: 'Electrolytes Blackberry Blackcurrant',
-    isForRace: true,
+    type: 'race',
     kind: 'electrolyte',
     serving: '1 tablet in 500 ml, 5 g',
     servingGrams: 5,
@@ -175,7 +175,7 @@ const PRODUCTS: ReadonlyArray<Product> = Object.freeze([
     id: 'decathlon-fruit-jellies-citrus',
     brand: 'Decathlon',
     name: 'Energy Fruit Jellies Citrus',
-    isForRace: true,
+    type: 'race',
     kind: 'jelly',
     serving: '1 bar, 25 g',
     servingGrams: 25,
@@ -196,7 +196,7 @@ const PRODUCTS: ReadonlyArray<Product> = Object.freeze([
   {
     id: 'rolled-oats',
     name: 'Rolled oats',
-    isForRace: false,
+    type: 'daily',
     kind: 'cereal',
     servingSuggestion: 'Typical dry portion: 40–80 g',
     nutritionPer100g: {
@@ -212,7 +212,7 @@ const PRODUCTS: ReadonlyArray<Product> = Object.freeze([
   {
     id: 'banana',
     name: 'Banana',
-    isForRace: true,
+    type: 'both',
     kind: 'fruit',
     serving: '1 medium peeled banana, about 120 g',
     servingGrams: 120,
@@ -230,7 +230,7 @@ const PRODUCTS: ReadonlyArray<Product> = Object.freeze([
   {
     id: 'white-rice-cooked',
     name: 'White rice, cooked',
-    isForRace: false,
+    type: 'daily',
     kind: 'cereal',
     servingSuggestion: 'Typical cooked portion: 150–250 g',
     nutritionPer100g: {
@@ -246,7 +246,7 @@ const PRODUCTS: ReadonlyArray<Product> = Object.freeze([
   {
     id: 'chicken-breast-cooked',
     name: 'Chicken breast, cooked',
-    isForRace: false,
+    type: 'daily',
     kind: 'meat',
     servingSuggestion: 'Typical cooked portion: 120–200 g',
     nutritionPer100g: {
@@ -268,7 +268,7 @@ const PRODUCTS: ReadonlyArray<Product> = Object.freeze([
   {
     id: 'egg-whole',
     name: 'Whole egg',
-    isForRace: false,
+    type: 'daily',
     kind: 'meat',
     servingSuggestion: 'One medium egg without shell: about 50 g',
     nutritionPer100g: {
@@ -283,7 +283,7 @@ const PRODUCTS: ReadonlyArray<Product> = Object.freeze([
   {
     id: 'chocolate-dark-85',
     name: 'Chocolate, dark 85%',
-    isForRace: false,
+    type: 'daily',
     kind: 'solid',
     servingSuggestion: 'Typical cooked portion: 20g',
     nutritionPer100g: {
@@ -300,7 +300,7 @@ const PRODUCTS: ReadonlyArray<Product> = Object.freeze([
   {
     id: 'salmon-cooked',
     name: 'Salmon, cooked',
-    isForRace: false,
+    type: 'daily',
     kind: 'seafood',
     servingSuggestion: 'Typical cooked portion: 120–180 g',
     nutritionPer100g: {
@@ -313,7 +313,7 @@ const PRODUCTS: ReadonlyArray<Product> = Object.freeze([
   {
     id: 'greek-yogurt-zero-fat',
     name: 'Greek yogurt, 0% fat',
-    isForRace: false,
+    type: 'daily',
     kind: 'dairy',
     servingSuggestion: 'One bowl: about 150–200 g',
     nutritionPer100g: {
@@ -328,7 +328,7 @@ const PRODUCTS: ReadonlyArray<Product> = Object.freeze([
   {
     id: 'almond-milk',
     name: 'Almond milk biorg',
-    isForRace: false,
+    type: 'daily',
     kind: 'dairy',
     servingSuggestion: 'One glass: about 200 ml',
     // it's 100ml, not 100g
@@ -345,7 +345,7 @@ const PRODUCTS: ReadonlyArray<Product> = Object.freeze([
   {
     id: 'agave-syrup',
     name: 'Agave syrup',
-    isForRace: false,
+    type: 'daily',
     kind: 'sugar',
     servingSuggestion: 'Typical serving: 1 tablespoon, about 21 g',
     nutritionPer100g: {
@@ -358,7 +358,7 @@ const PRODUCTS: ReadonlyArray<Product> = Object.freeze([
   {
     id: 'olive-oil',
     name: 'Olive oil',
-    isForRace: false,
+    type: 'daily',
     kind: 'fat',
     servingSuggestion: 'One tablespoon: about 14 g',
     nutritionPer100g: {
@@ -370,7 +370,7 @@ const PRODUCTS: ReadonlyArray<Product> = Object.freeze([
   {
     id: 'almonds',
     name: 'Almonds',
-    isForRace: false,
+    type: 'daily',
     kind: 'nuts',
     servingSuggestion: 'One small handful: about 30 g',
     nutritionPer100g: {
@@ -386,7 +386,7 @@ const PRODUCTS: ReadonlyArray<Product> = Object.freeze([
   {
     id: 'broccoli',
     name: 'Broccoli',
-    isForRace: false,
+    type: 'daily',
     kind: 'vegetable',
     servingSuggestion: 'Typical cooked portion: 100–200 g',
     nutritionPer100g: {
@@ -407,10 +407,10 @@ export class ProductService {
 
   readonly allProducts = this.catalog.asReadonly();
   readonly dailyProducts = computed<ReadonlyArray<Product>>(() =>
-    this.allProducts().filter((product) => !product.isForRace),
+    this.allProducts().filter((product) => product.type === 'daily' || product.type === 'both'),
   );
   readonly raceProducts = computed<ReadonlyArray<Product>>(() =>
-    this.allProducts().filter((product) => product.isForRace),
+    this.allProducts().filter((product) => product.type === 'race' || product.type === 'both'),
   );
 
   calculateNutritionForGrams(product: Product, grams: number): Nutrition {

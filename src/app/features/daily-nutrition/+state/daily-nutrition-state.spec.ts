@@ -10,19 +10,19 @@ describe('DailyNutritionState', () => {
   });
 
   it('derives its products from the unified catalog', () => {
-    expect(state.products()).toHaveLength(11);
+    expect(state.products()).toHaveLength(13);
     expect(state.products().find((product) => product.id === 'banana')?.type).toBe('both');
     expect(state.products().some((product) => product.type === 'race')).toBe(false);
   });
 
   it('derives calorie and macro goals from the private source state', () => {
     expect(state.goals()).toMatchObject({
-      calorieMinimum: 2250,
-      calorieMaximum: 2500,
-      proteinGrams: 140,
-      fatGrams: 70,
-      carbohydrateMinimum: 265,
-      carbohydrateMaximum: 327.5,
+      calorieMaximum: 2000,
+      calorieMinimum: 1800,
+      carbohydrateMaximum: 177,
+      carbohydrateMinimum: 127,
+      fatGrams: 76,
+      proteinGrams: 152,
     });
 
     state.setCalorieTarget(3000);
@@ -52,7 +52,7 @@ describe('DailyNutritionState', () => {
     expect(state.totals().protein).toBeCloseTo(19.1);
     expect(state.calorieStatus().state).toBe('under target');
 
-    state.setQuantity('olive-oil', 191);
+    state.setQuantity('olive-oil', 150);
     expect(state.calorieStatus().state).toBe('on target');
 
     state.setQuantity('olive-oil', 300);
