@@ -1,16 +1,17 @@
 import { TestBed } from '@angular/core/testing';
-import { FuelProduct } from '../product.model';
+import { Product } from '../../services/product.model';
 import { FuelPlanRowComponent } from './fuel-plan-row.component';
 
-const PRODUCT: FuelProduct = {
+const PRODUCT: Product = {
   id: 'maurten-gel-160',
   brand: 'Maurten',
   name: 'Gel 160',
+  type: 'race',
   kind: 'gel',
   serving: '1 sachet, 65 g',
   sourceLabel: 'Maurten',
   sourceUrl: 'https://www.maurten.com/products/gb/gel-160',
-  nutrition: {
+  nutritionPerServing: {
     calories: 160,
     carbs: 40,
     sugar: 40,

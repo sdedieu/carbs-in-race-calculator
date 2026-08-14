@@ -2,6 +2,30 @@
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.14.
 
+## Features
+
+- **Race fuel calculator** — set race duration and carbohydrates per hour, then combine the built-in endurance products into a fuel plan.
+- **Everyday nutrition calculator** — set a daily calorie target and body mass, then enter everyday food quantities in grams to track calories, carbohydrates, protein, fat, sugar, and fiber.
+
+The everyday calculator uses a calorie goal range from 90% to 100% of the entered target. Protein is calculated at 2 g/kg of body mass, fat at 1 g/kg, and the remaining calories determine the carbohydrate range using 4 kcal/g for protein and carbohydrates and 9 kcal/g for fat. Food values are reference values per 100 g and can vary by product and preparation method.
+
+## Application structure
+
+```text
+src/app/
+├── features/
+│   ├── daily-nutrition/
+│   │   └── +state/daily-nutrition-state.ts
+│   └── race-fuel/
+│       └── +state/race-fuel-state.ts
+├── services/
+│   ├── product.model.ts
+│   └── product.service.ts
+└── shared/ui/
+```
+
+`ProductService` is the single catalog for race, daily, and shared products. Each feature state is scoped to its calculator component, keeps writable signals private, exposes computed state, and provides explicit methods for user actions such as changing settings, quantities, and resetting a plan.
+
 ## Development server
 
 To start a local development server, run:

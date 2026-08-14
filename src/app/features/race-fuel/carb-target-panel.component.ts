@@ -12,7 +12,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
       </div>
       <progress
         class="h-2 w-full overflow-hidden rounded-full accent-emerald-700"
-        [class.accent-orange-600]="isOverTarget()"
+        [class.accent-orange-600]="state() === 'over target'"
         [value]="progress()"
         max="100"
         aria-label="Carbohydrate target progress"
@@ -29,21 +29,23 @@ export class CarbTargetPanelComponent {
   readonly deltaLabel = input.required<string>();
   readonly progress = input.required<number>();
 
-  protected isOverTarget(): boolean {
-    return this.delta() > 10;
-  }
-
   protected panelClasses(): string {
     const base = 'grid gap-3 rounded-lg border p-4';
 
-    return this.isOverTarget()
-      ? `${base} border-orange-500/30 bg-orange-50`
-      : `${base} border-emerald-700/20 bg-emerald-50`;
+    return this.state() === 'under target'
+      ? `${base} border-red-500/30 bg-red-50 text-red-800`
+      : this.state() === 'over target'
+        ? `${base} border-orange-500/30 bg-orange-50`
+        : `${base} border-emerald-700/20 bg-emerald-50`;
   }
 
   protected stateClasses(): string {
     const base = 'text-xs font-black tracking-wide uppercase';
 
-    return this.isOverTarget() ? `${base} text-orange-700` : `${base} text-emerald-700`;
+    return this.state() === 'under target'
+      ? `${base} text-red-700`
+      : this.state() === 'over target'
+        ? `${base} text-orange-700`
+        : `${base} text-emerald-700`;
   }
 }
