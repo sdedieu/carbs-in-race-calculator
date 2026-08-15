@@ -100,10 +100,12 @@ export class ProductLibraryCardComponent {
       meat: `${base} bg-red-50 text-red-700`,
       nuts: `${base} bg-orange-50 text-orange-800`,
       puree: `${base} bg-rose-50 text-rose-700`,
+      sauce: `${base} bg-rose-50 text-rose-700`,
       seafood: `${base} bg-cyan-50 text-cyan-700`,
       solid: `${base} bg-amber-50 text-amber-700`,
       sugar: `${base} bg-pink-50 text-pink-700`,
       vegetable: `${base} bg-emerald-50 text-emerald-700`,
+      fish: `${base} bg-cyan-50 text-cyan-700`,
     };
 
     return classes[kind];

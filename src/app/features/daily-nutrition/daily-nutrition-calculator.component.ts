@@ -126,8 +126,8 @@ const HOST_BINDINGS = { class: 'block' };
         class="rounded-lg border border-teal-800/15 bg-teal-50 px-4 py-3 text-sm font-semibold text-teal-950"
         data-test="goal-formula"
       >
-        Protein is 2 g/kg and fat is 1 g/kg. Their calories (4 kcal/g and 9 kcal/g) are reserved
-        first; carbohydrates fill the calories remaining in the 90–100% target range.
+        Protein is 2 g/kg, sugar and fat are both 1 g/kg. Their calories are reserved first;
+        carbohydrates fill the calories remaining in the 90–100% target range.
       </p>
 
       <section
@@ -170,12 +170,22 @@ const HOST_BINDINGS = { class: 'block' };
           </button>
         </div>
 
+        <div class="mb-3">
+          <input
+            class="min-h-11 rounded-lg border border-stone-900/20 bg-white px-3 text-base font-extrabold text-stone-900 outline-none focus:border-teal-700 focus:ring-4 focus:ring-teal-700/15"
+            type="search"
+            placeholder="Search food..."
+            (input)="setSearch($event)"
+            [value]="searchSignal()"
+          />
+        </div>
+
         <p class="mb-3 text-sm font-semibold text-stone-500">
           Nutrition reference values shown for every food are per 100 g.
         </p>
 
         <div class="grid gap-3" role="list" aria-label="Everyday food library">
-          @for (product of products(); track product.id) {
+          @for (product of filteredProducts(); track product.id) {
             <app-daily-food-row
               role="listitem"
               [product]="product"
@@ -193,11 +203,12 @@ const HOST_BINDINGS = { class: 'block' };
 export class DailyNutritionCalculatorComponent {
   protected readonly state = inject(DailyNutritionState);
 
-  protected readonly products = this.state.products;
+  protected readonly filteredProducts = this.state.filteredProducts;
   protected readonly calorieTarget = this.state.calorieTarget;
   protected readonly bodyMassKg = this.state.bodyMassKg;
   protected readonly goals = this.state.goals;
   protected readonly totals = this.state.totals;
+  protected readonly searchSignal = this.state.searchSignal;
 
   protected readonly calorieStatus = computed<CalorieStatus>(() => {
     const status = this.state.calorieStatus();
@@ -287,7 +298,7 @@ export class DailyNutritionCalculatorComponent {
         key: 'sugar',
         label: 'Sugar',
         value: this.format(totals.sugar, 'g', 1),
-        goal: 'No target set',
+        goal: `Goal ${this.format(goals.sugarGrams, 'g', 1)}`,
       },
       {
         key: 'fiber',
@@ -312,6 +323,10 @@ export class DailyNutritionCalculatorComponent {
 
   protected setQuantity(productId: ProductId, value: string | number): void {
     this.state.setQuantity(productId, value);
+  }
+
+  protected setSearch(event: Event): void {
+    this.state.setSearchTerm(this.inputValue(event));
   }
 
   protected resetPlan(): void {

@@ -67,10 +67,12 @@ export class FuelPlanRowComponent {
       meat: `${base} bg-red-600`,
       nuts: `${base} bg-orange-700`,
       puree: `${base} bg-rose-600`,
+      sauce: `${base} bg-rose-600`,
       seafood: `${base} bg-cyan-600`,
       solid: `${base} bg-amber-500`,
       sugar: `${base} bg-pink-600`,
       vegetable: `${base} bg-emerald-600`,
+      fish: `${base} bg-cyan-600`,
     };
 
     return classes[kind];

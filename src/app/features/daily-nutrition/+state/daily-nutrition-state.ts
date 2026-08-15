@@ -7,6 +7,7 @@ export interface DailyNutritionGoals {
   readonly calorieMaximum: number;
   readonly proteinGrams: number;
   readonly fatGrams: number;
+  readonly sugarGrams: number;
   readonly carbohydrateMinimum: number;
   readonly carbohydrateMaximum: number;
   readonly proteinCalories: number;
@@ -23,13 +24,27 @@ export interface DailyCalorieStatus {
 export class DailyNutritionState {
   private readonly productService = inject(ProductService);
 
-  private readonly calorieTargetSignal = signal(2_000);
+  private readonly calorieTargetSignal = signal(2_100);
   private readonly bodyMassKgSignal = signal(76);
   private readonly quantitiesSignal = signal<ProductQuantities>(
     this.productService.createEmptyQuantities(this.productService.dailyProducts()),
   );
+  readonly searchSignal = signal('');
 
   readonly products = computed(() => this.productService.dailyProducts());
+  readonly filteredProducts = computed(() => {
+    const searchTerm = this.searchSignal().toLowerCase();
+
+    if (!searchTerm) {
+      return this.products();
+    }
+
+    return this.products().filter(
+      (product) =>
+        product.name.toLowerCase().includes(searchTerm) ||
+        product.kind?.toLowerCase().includes(searchTerm),
+    );
+  });
   readonly calorieTarget = computed(() => this.calorieTargetSignal());
   readonly bodyMassKg = computed(() => this.bodyMassKgSignal());
 
@@ -38,6 +53,7 @@ export class DailyNutritionState {
     const calorieMinimum = calorieMaximum * 0.9;
     const proteinGrams = this.bodyMassKg() * 2;
     const fatGrams = this.bodyMassKg();
+    const sugarGrams = this.bodyMassKg();
     const proteinCalories = proteinGrams * 4;
     const fatCalories = fatGrams * 9;
     const reservedCalories = proteinCalories + fatCalories;
@@ -47,6 +63,7 @@ export class DailyNutritionState {
       calorieMaximum,
       proteinGrams,
       fatGrams,
+      sugarGrams,
       carbohydrateMinimum: Math.max(0, (calorieMinimum - reservedCalories) / 4),
       carbohydrateMaximum: Math.max(0, (calorieMaximum - reservedCalories) / 4),
       proteinCalories,
@@ -117,6 +134,10 @@ export class DailyNutritionState {
       ...quantities,
       [productId]: quantity,
     }));
+  }
+
+  setSearchTerm(searchTerm: string): void {
+    this.searchSignal.set(searchTerm);
   }
 
   resetPlan(): void {
