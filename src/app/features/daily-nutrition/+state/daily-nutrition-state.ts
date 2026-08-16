@@ -1,4 +1,4 @@
-import { computed, inject, Injectable, signal } from '@angular/core';
+import { computed, inject, Service, signal } from '@angular/core';
 import { Nutrition, Product, ProductId, ProductQuantities } from '../../../services/product.model';
 import { EMPTY_NUTRITION, ProductService } from '../../../services/product.service';
 
@@ -20,7 +20,7 @@ export interface DailyCalorieStatus {
   readonly progress: number;
 }
 
-@Injectable()
+@Service()
 export class DailyNutritionState {
   private readonly productService = inject(ProductService);
 

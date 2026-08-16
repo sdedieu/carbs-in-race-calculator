@@ -28,7 +28,6 @@ const HOST_BINDINGS = { class: 'block' };
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: HOST_BINDINGS,
-  providers: [RaceFuelState],
   template: `
     <section class="grid gap-5" data-test="race-fuel-calculator">
       <section

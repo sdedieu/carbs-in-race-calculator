@@ -1,4 +1,4 @@
-import { computed, inject, Injectable, signal } from '@angular/core';
+import { computed, inject, Service, signal } from '@angular/core';
 import { Nutrition, Product, ProductId, ProductQuantities } from '../../../services/product.model';
 import { EMPTY_NUTRITION, ProductService } from '../../../services/product.service';
 
@@ -9,7 +9,7 @@ export interface RaceCarbTarget {
   readonly state: 'on target' | 'over target' | 'under target';
 }
 
-@Injectable()
+@Service()
 export class RaceFuelState {
   private readonly productService = inject(ProductService);
 

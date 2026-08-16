@@ -32,7 +32,6 @@ const HOST_BINDINGS = { class: 'block' };
   imports: [DailyFoodRowComponent],
   host: HOST_BINDINGS,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [DailyNutritionState],
   template: `
     <section
       class="grid gap-5"
