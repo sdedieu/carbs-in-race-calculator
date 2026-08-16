@@ -2,6 +2,8 @@ export type ProductId =
   | 'maurten-gel-100-caf-100'
   | 'maurten-gel-160'
   | 'maurten-drink-mix-320-caf-100'
+  | 'nduranz-energy-unit-drink-90'
+  | 'iso-isotonic-short-duration-rasbery'
   | 'maurten-solid-160'
   | 'maurten-solid-c-160'
   | 'baouw-puree-raspberry-strawberry-basil'
