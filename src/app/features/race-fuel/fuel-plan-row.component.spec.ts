@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { Product } from '../../services/product.model';
+import { getButtonByName } from '../../testing/dom-testing';
 import { FuelPlanRowComponent } from './fuel-plan-row.component';
 
 const PRODUCT: Product = {
@@ -55,18 +56,17 @@ describe('FuelPlanRowComponent', () => {
     expect(compiled.textContent).toContain('320 kcal');
   });
 
-  it('should forward quantity changes', () => {
+  it('forwards quantity changes made with the visible controls', () => {
     const fixture = TestBed.createComponent(FuelPlanRowComponent);
-    const component = fixture.componentInstance;
-    const quantityChange = vi.spyOn(component.quantityChange, 'emit');
+    const quantityChange = vi.spyOn(fixture.componentInstance.quantityChange, 'emit');
 
     fixture.componentRef.setInput('product', PRODUCT);
     fixture.componentRef.setInput('quantity', 2);
     fixture.componentRef.setInput('total', PRODUCT.nutritionPerServing);
     fixture.detectChanges();
 
-    component['emitQuantity'](2.5);
+    getButtonByName(fixture.nativeElement, 'Increase Gel 160').click();
 
-    expect(quantityChange).toHaveBeenCalledWith(2.5);
+    expect(quantityChange).toHaveBeenCalledWith(3);
   });
 });

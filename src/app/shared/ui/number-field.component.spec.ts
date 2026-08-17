@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { getInputByLabel, setInputValue } from '../../testing/dom-testing';
 import { NumberFieldComponent } from './number-field.component';
 
 describe('NumberFieldComponent', () => {
@@ -8,30 +9,24 @@ describe('NumberFieldComponent', () => {
     }).compileComponents();
   });
 
-  it('should render the label and value', () => {
+  it('accepts a value through its labelled number input', () => {
     const fixture = TestBed.createComponent(NumberFieldComponent);
+    const valueChange = vi.spyOn(fixture.componentInstance.valueChange, 'emit');
     fixture.componentRef.setInput('label', 'Hours');
     fixture.componentRef.setInput('value', 3);
+    fixture.componentRef.setInput('min', 0);
+    fixture.componentRef.setInput('max', 24);
     fixture.detectChanges();
 
-    const compiled = fixture.nativeElement as HTMLElement;
-    const input = compiled.querySelector('input');
+    const input = getInputByLabel(fixture.nativeElement, 'Hours');
 
-    expect(compiled.textContent).toContain('Hours');
-    expect(input?.value).toBe('3');
-  });
+    expect(input.value).toBe('3');
+    expect(input.min).toBe('0');
+    expect(input.max).toBe('24');
 
-  it('should emit value changes', () => {
-    const fixture = TestBed.createComponent(NumberFieldComponent);
-    const component = fixture.componentInstance;
-    const valueChange = vi.spyOn(component.valueChange, 'emit');
+    setInputValue(input, '4');
 
-    fixture.componentRef.setInput('label', 'Hours');
-    fixture.componentRef.setInput('value', 3);
-    fixture.detectChanges();
-
-    component['emitValue']('4');
-
+    expect(valueChange).toHaveBeenCalledOnce();
     expect(valueChange).toHaveBeenCalledWith('4');
   });
 });

@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { Nutrition } from '../../services/product.model';
+import { normalizedText } from '../../testing/dom-testing';
 import { NutritionTotalAmountsCardComponent } from './nutrition-total-amounts-card.component';
 
 const TOTAL: Nutrition = {
@@ -30,12 +31,8 @@ describe('NutritionTotalAmountsCardComponent', () => {
     fixture.componentRef.setInput('nutritionToDisplay', ['carbs', 'protein', 'fat']);
     fixture.detectChanges();
 
-    const compiled = fixture.nativeElement as HTMLElement;
-
-    expect(compiled.querySelector('span')?.textContent?.trim()).toBe('Amount total');
-    expect(compiled.querySelector('strong')?.textContent?.trim()).toBe('331 kcal');
-    expect(compiled.querySelector('small')?.textContent?.trim()).toBe(
-      '81.5 g carbs · 4.6 g protein · 1.2 g fat',
+    expect(normalizedText(fixture.nativeElement)).toBe(
+      'Amount total 331 kcal 81.5 g carbs · 4.6 g protein · 1.2 g fat',
     );
   });
 
@@ -45,13 +42,14 @@ describe('NutritionTotalAmountsCardComponent', () => {
     fixture.componentRef.setInput('nutritionToDisplay', ['sugar', 'fiber']);
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.querySelector('small')?.textContent?.trim()).toBe(
-      '80 g sugar · 5.3 g fiber',
-    );
+    expect(normalizedText(fixture.nativeElement)).toContain('80 g sugar · 5.3 g fiber');
 
     fixture.componentRef.setInput('nutritionToDisplay', ['fat']);
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.querySelector('small')?.textContent?.trim()).toBe('1.2 g fat');
+    const updatedContent = normalizedText(fixture.nativeElement);
+
+    expect(updatedContent).toContain('1.2 g fat');
+    expect(updatedContent).not.toContain('sugar');
   });
 });

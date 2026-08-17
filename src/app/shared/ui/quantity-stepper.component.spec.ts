@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { getButtonByName, getInputByLabel, setInputValue } from '../../testing/dom-testing';
 import { QuantityStepperComponent } from './quantity-stepper.component';
 
 describe('QuantityStepperComponent', () => {
@@ -8,33 +9,19 @@ describe('QuantityStepperComponent', () => {
     }).compileComponents();
   });
 
-  it('should emit step changes', () => {
+  it('accepts button and typed quantity changes', () => {
     const fixture = TestBed.createComponent(QuantityStepperComponent);
-    const component = fixture.componentInstance;
-    const valueChange = vi.spyOn(component.valueChange, 'emit');
-
+    const valueChange = vi.spyOn(fixture.componentInstance.valueChange, 'emit');
     fixture.componentRef.setInput('label', 'Gel 160');
     fixture.componentRef.setInput('value', 2);
     fixture.detectChanges();
 
-    component['increase']();
-    component['decrease']();
+    getButtonByName(fixture.nativeElement, 'Increase Gel 160').click();
+    getButtonByName(fixture.nativeElement, 'Reduce Gel 160').click();
+    setInputValue(getInputByLabel(fixture.nativeElement, 'Gel 160 quantity'), '2.5');
 
-    expect(valueChange).toHaveBeenCalledWith(1);
-    expect(valueChange).toHaveBeenCalledWith(1);
-  });
-
-  it('should emit typed values', () => {
-    const fixture = TestBed.createComponent(QuantityStepperComponent);
-    const component = fixture.componentInstance;
-    const valueChange = vi.spyOn(component.valueChange, 'emit');
-
-    fixture.componentRef.setInput('label', 'Gel 160');
-    fixture.componentRef.setInput('value', 2);
-    fixture.detectChanges();
-
-    component['emitValue']('3');
-
-    expect(valueChange).toHaveBeenCalledWith('3');
+    expect(valueChange).toHaveBeenNthCalledWith(1, 3);
+    expect(valueChange).toHaveBeenNthCalledWith(2, 1);
+    expect(valueChange).toHaveBeenNthCalledWith(3, '2.5');
   });
 });

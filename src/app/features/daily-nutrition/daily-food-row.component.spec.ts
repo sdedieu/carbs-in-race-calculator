@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { Nutrition, Product } from '../../services/product.model';
+import { getInputByLabel, normalizedText, setInputValue } from '../../testing/dom-testing';
 import { DailyFoodRowComponent } from './daily-food-row.component';
 
 const NUTRITION: Nutrition = {
@@ -58,13 +59,9 @@ describe('DailyFoodRowComponent', () => {
 
     const compiled = fixture.nativeElement as HTMLElement;
 
-    expect(compiled.textContent).toContain('Banana');
-    expect(compiled.querySelector('[data-test="per-100g-values"]')?.textContent).toContain(
-      '89 kcal',
-    );
-    expect(compiled.querySelector('[data-test="food-row-total"]')?.textContent).toContain(
-      '178 kcal',
-    );
+    expect(normalizedText(compiled)).toContain('Banana');
+    expect(normalizedText(compiled)).toContain('Energy 89 kcal');
+    expect(normalizedText(compiled)).toContain('Amount total 178 kcal');
   });
 
   it('emits typed gram quantities', () => {
@@ -76,11 +73,8 @@ describe('DailyFoodRowComponent', () => {
     fixture.componentRef.setInput('total', TOTAL);
     fixture.detectChanges();
 
-    const input = fixture.nativeElement.querySelector(
-      '[data-test="food-quantity-input"]',
-    ) as HTMLInputElement;
-    input.value = '125';
-    input.dispatchEvent(new Event('input', { bubbles: true }));
+    const input = getInputByLabel(fixture.nativeElement, 'Banana amount in grams');
+    setInputValue(input, '125');
 
     expect(quantityChange).toHaveBeenCalledWith('125');
   });

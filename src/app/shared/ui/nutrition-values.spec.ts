@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { Nutrition } from '../../services/product.model';
+import { normalizedText } from '../../testing/dom-testing';
 import { NutritionValuesComponent } from './nutrition-values';
 
 const NUTRITION: Nutrition = {
@@ -29,21 +30,14 @@ describe('NutritionValuesComponent', () => {
     fixture.componentRef.setInput('nutrition', NUTRITION);
     fixture.detectChanges();
 
-    const compiled = fixture.nativeElement as HTMLElement;
-    const values = Array.from(compiled.querySelectorAll('div')).map((element) => ({
-      label: element.querySelector('dt')?.textContent?.trim(),
-      value: element.querySelector('dd')?.textContent?.trim(),
-    }));
+    const content = normalizedText(fixture.nativeElement);
 
-    expect(compiled.getAttribute('data-test')).toBe('per-100g-values');
-    expect(values).toEqual([
-      { label: 'Energy', value: '1,235 kcal' },
-      { label: 'Carbs', value: '22.8 g' },
-      { label: 'Sugar', value: '12.2 g' },
-      { label: 'Fiber', value: '2.7 g' },
-      { label: 'Fat', value: '0.3 g' },
-      { label: 'Protein', value: '1.1 g' },
-    ]);
+    expect(content).toContain('Energy 1,235 kcal');
+    expect(content).toContain('Carbs 22.8 g');
+    expect(content).toContain('Sugar 12.2 g');
+    expect(content).toContain('Fiber 2.7 g');
+    expect(content).toContain('Fat 0.3 g');
+    expect(content).toContain('Protein 1.1 g');
   });
 
   it('updates rendered values when the nutrition input changes', () => {
@@ -58,8 +52,10 @@ describe('NutritionValuesComponent', () => {
     });
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent).toContain('89 kcal');
-    expect(fixture.nativeElement.textContent).toContain('22.8 g');
-    expect(fixture.nativeElement.textContent).not.toContain('1,235 kcal');
+    const content = normalizedText(fixture.nativeElement);
+
+    expect(content).toContain('Energy 89 kcal');
+    expect(content).toContain('Carbs 22.8 g');
+    expect(content).not.toContain('1,235 kcal');
   });
 });

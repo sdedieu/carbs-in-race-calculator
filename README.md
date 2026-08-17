@@ -62,21 +62,24 @@ This will compile your project and store the build artifacts in the `dist/` dire
 
 ## Running unit tests
 
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+The unit suite uses [Vitest](https://vitest.dev/). Feature tests exercise rendered controls and
+visible outcomes, while state and service tests cover domain calculations and external boundaries.
 
 ```bash
-ng test
+npm run test -- --watch=false
 ```
 
 ## Running end-to-end tests
 
-For end-to-end (e2e) testing, run:
+The Playwright suite starts the Angular development server automatically and covers the main
+calculator journeys in Chromium:
 
 ```bash
-ng e2e
+npx playwright install chromium
+npm run test:e2e
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+The browser installation is only required once per Playwright version.
 
 ## Additional Resources
 
