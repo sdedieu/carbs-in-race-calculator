@@ -1,26 +1,29 @@
 import { TestBed } from '@angular/core/testing';
+import { provideProductServiceStub } from '../../../testing/product-service.stub';
 import { DailyNutritionState } from './daily-nutrition-state';
 
 describe('DailyNutritionState', () => {
   let state: DailyNutritionState;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({ providers: [DailyNutritionState] });
+    TestBed.configureTestingModule({
+      providers: [DailyNutritionState, provideProductServiceStub()],
+    });
     state = TestBed.inject(DailyNutritionState);
   });
 
   it('derives its products from the unified catalog', () => {
-    expect(state.products()).toHaveLength(13);
+    expect(state.products()).toHaveLength(3);
     expect(state.products().find((product) => product.id === 'banana')?.type).toBe('both');
     expect(state.products().some((product) => product.type === 'race')).toBe(false);
   });
 
   it('derives calorie and macro goals from the private source state', () => {
     expect(state.goals()).toMatchObject({
-      calorieMaximum: 2000,
-      calorieMinimum: 1800,
-      carbohydrateMaximum: 177,
-      carbohydrateMinimum: 127,
+      calorieMaximum: 2100,
+      calorieMinimum: 1890,
+      carbohydrateMaximum: 202,
+      carbohydrateMinimum: 149.5,
       fatGrams: 76,
       proteinGrams: 152,
     });
@@ -52,7 +55,7 @@ describe('DailyNutritionState', () => {
     expect(state.totals().protein).toBeCloseTo(19.1);
     expect(state.calorieStatus().state).toBe('under target');
 
-    state.setQuantity('olive-oil', 150);
+    state.setQuantity('olive-oil', 160);
     expect(state.calorieStatus().state).toBe('on target');
 
     state.setQuantity('olive-oil', 300);

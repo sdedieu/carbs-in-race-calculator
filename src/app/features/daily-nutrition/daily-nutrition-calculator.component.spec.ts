@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { provideProductServiceStub } from '../../testing/product-service.stub';
 import { DailyNutritionCalculatorComponent } from './daily-nutrition-calculator.component';
 
 function setInputValue(input: HTMLInputElement, value: string): void {
@@ -10,6 +11,7 @@ describe('DailyNutritionCalculatorComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [DailyNutritionCalculatorComponent],
+      providers: [provideProductServiceStub()],
     }).compileComponents();
   });
 
@@ -20,13 +22,15 @@ describe('DailyNutritionCalculatorComponent', () => {
     const compiled = fixture.nativeElement as HTMLElement;
 
     expect(compiled.querySelector('[data-test="calories-goal"]')?.textContent).toContain(
-      'Acceptable calories1,800–2,000 kcal',
+      'Acceptable calories1,890–2,100 kcal',
     );
     expect(compiled.querySelector('[data-test="protein-goal"]')?.textContent).toContain(
       'Protein goal152 g',
     );
     expect(compiled.querySelector('[data-test="fat-goal"]')?.textContent).toContain('Fat goal76 g');
-    expect(compiled.querySelector('[data-test="carbs-goal"]')?.textContent).toContain('127–177 g');
+    expect(compiled.querySelector('[data-test="carbs-goal"]')?.textContent).toContain(
+      '149.5–202 g',
+    );
   });
 
   it('should update all goals from their source inputs', () => {

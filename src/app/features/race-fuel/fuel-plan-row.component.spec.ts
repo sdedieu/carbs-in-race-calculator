@@ -38,9 +38,14 @@ describe('FuelPlanRowComponent', () => {
     const fixture = TestBed.createComponent(FuelPlanRowComponent);
     fixture.componentRef.setInput('product', PRODUCT);
     fixture.componentRef.setInput('quantity', 2);
-    fixture.componentRef.setInput('carbsLabel', '80 g');
-    fixture.componentRef.setInput('caloriesLabel', '320 kcal');
-    fixture.componentRef.setInput('sugarLabel', '80 g');
+    fixture.componentRef.setInput('total', {
+      ...PRODUCT.nutritionPerServing,
+      calories: 320,
+      carbs: 80,
+      sugar: 80,
+      sodium: 64,
+      salt: 0.16,
+    });
     fixture.detectChanges();
 
     const compiled = fixture.nativeElement as HTMLElement;
@@ -57,9 +62,7 @@ describe('FuelPlanRowComponent', () => {
 
     fixture.componentRef.setInput('product', PRODUCT);
     fixture.componentRef.setInput('quantity', 2);
-    fixture.componentRef.setInput('carbsLabel', '80 g');
-    fixture.componentRef.setInput('caloriesLabel', '320 kcal');
-    fixture.componentRef.setInput('sugarLabel', '80 g');
+    fixture.componentRef.setInput('total', PRODUCT.nutritionPerServing);
     fixture.detectChanges();
 
     component['emitQuantity'](2.5);

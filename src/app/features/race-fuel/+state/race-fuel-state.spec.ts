@@ -1,16 +1,19 @@
 import { TestBed } from '@angular/core/testing';
+import { provideProductServiceStub } from '../../../testing/product-service.stub';
 import { RaceFuelState } from './race-fuel-state';
 
 describe('RaceFuelState', () => {
   let state: RaceFuelState;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({ providers: [RaceFuelState] });
+    TestBed.configureTestingModule({
+      providers: [RaceFuelState, provideProductServiceStub()],
+    });
     state = TestBed.inject(RaceFuelState);
   });
 
   it('derives its products from the unified catalog', () => {
-    expect(state.products()).toHaveLength(9);
+    expect(state.products()).toHaveLength(3);
     expect(state.products().find((product) => product.id === 'banana')?.type).toBe('both');
     expect(state.products().some((product) => product.type === 'daily')).toBe(false);
   });

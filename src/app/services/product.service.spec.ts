@@ -1,19 +1,63 @@
 import { TestBed } from '@angular/core/testing';
+import { of } from 'rxjs';
+import { TEST_PRODUCTS } from '../testing/product-service.stub';
 import { Product } from './product.model';
+
+const firestoreMock = vi.hoisted(() => ({
+  collection: vi.fn(),
+  collectionData: vi.fn(),
+  doc: vi.fn(),
+  endAt: vi.fn(),
+  orderBy: vi.fn(),
+  query: vi.fn(),
+  setDoc: vi.fn(),
+  startAt: vi.fn(),
+}));
+
+vi.mock('@angular/fire/firestore', () => ({
+  Firestore: class Firestore {},
+  collection: firestoreMock.collection,
+  collectionData: firestoreMock.collectionData,
+  doc: firestoreMock.doc,
+  endAt: firestoreMock.endAt,
+  orderBy: firestoreMock.orderBy,
+  query: firestoreMock.query,
+  setDoc: firestoreMock.setDoc,
+  startAt: firestoreMock.startAt,
+}));
+
+import { Firestore } from '@angular/fire/firestore';
 import { EMPTY_NUTRITION, ProductService } from './product.service';
 
 describe('ProductService', () => {
   let service: ProductService;
+  let firestore: object;
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({});
+  beforeEach(async () => {
+    vi.clearAllMocks();
+    firestore = {};
+    firestoreMock.collection.mockImplementation((_firestore: object, path: string) => ({ path }));
+    firestoreMock.collectionData.mockImplementation((reference: { path: string }) =>
+      of(reference.path === 'users/me/favorites' ? TEST_PRODUCTS : []),
+    );
+    firestoreMock.doc.mockImplementation((_firestore: object, path: string) => ({ path }));
+    firestoreMock.query.mockImplementation((reference: unknown) => reference);
+    firestoreMock.setDoc.mockResolvedValue(undefined);
+
+    TestBed.configureTestingModule({
+      providers: [{ provide: Firestore, useValue: firestore }],
+    });
     service = TestBed.inject(ProductService);
+    TestBed.tick();
+    await Promise.resolve();
+    TestBed.tick();
   });
 
-  it('should expose one catalog and filter products by daily and race use', () => {
-    expect(service.allProducts()).toHaveLength(21);
-    expect(service.dailyProducts()).toHaveLength(13);
-    expect(service.raceProducts()).toHaveLength(9);
+  it('should expose Firestore products and filter them by daily and race use', () => {
+    expect(firestoreMock.collection).toHaveBeenCalledWith(firestore, 'users/me/favorites');
+    expect(service.allProducts()).toEqual(TEST_PRODUCTS);
+    expect(service.dailyProducts()).toHaveLength(3);
+    expect(service.raceProducts()).toHaveLength(3);
     expect(service.dailyProducts().every((product) => product.type !== 'race')).toBe(true);
     expect(service.raceProducts().every((product) => product.type !== 'daily')).toBe(true);
   });
@@ -76,9 +120,9 @@ describe('ProductService', () => {
     const allQuantities = service.createEmptyQuantities();
     const raceQuantities = service.createEmptyQuantities(service.raceProducts());
 
-    expect(Object.keys(allQuantities)).toHaveLength(21);
+    expect(Object.keys(allQuantities)).toHaveLength(5);
     expect(Object.values(allQuantities).every((quantity) => quantity === 0)).toBe(true);
-    expect(Object.keys(raceQuantities)).toHaveLength(9);
+    expect(Object.keys(raceQuantities)).toHaveLength(3);
     expect(raceQuantities['banana']).toBe(0);
     expect(raceQuantities['rolled-oats']).toBeUndefined();
   });
@@ -88,6 +132,19 @@ describe('ProductService', () => {
 
     expect(service.calculateNutritionForGrams(oats, -50)).toEqual(EMPTY_NUTRITION);
     expect(service.calculateNutritionForRaceServings(oats, Number.NaN)).toEqual(EMPTY_NUTRITION);
+  });
+
+  it('should persist favorite products without their document ids', async () => {
+    const gel = findProduct(TEST_PRODUCTS, 'maurten-gel-160');
+    const { id: _id, ...gelData } = gel;
+
+    await service.setProducts([gel]);
+
+    expect(firestoreMock.doc).toHaveBeenCalledWith(firestore, 'users/me/favorites/maurten-gel-160');
+    expect(firestoreMock.setDoc).toHaveBeenCalledWith(
+      { path: 'users/me/favorites/maurten-gel-160' },
+      gelData,
+    );
   });
 });
 

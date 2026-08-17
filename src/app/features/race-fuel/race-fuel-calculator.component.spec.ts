@@ -1,10 +1,12 @@
 import { TestBed } from '@angular/core/testing';
+import { provideProductServiceStub } from '../../testing/product-service.stub';
 import { RaceFuelCalculatorComponent } from './race-fuel-calculator.component';
 
 describe('RaceFuelCalculatorComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [RaceFuelCalculatorComponent],
+      providers: [provideProductServiceStub()],
     }).compileComponents();
   });
 
