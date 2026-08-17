@@ -4,7 +4,6 @@ const HOST_BINDINGS = { class: 'block min-w-0' };
 
 @Component({
   selector: 'app-quantity-stepper',
-  standalone: true,
   host: HOST_BINDINGS,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `

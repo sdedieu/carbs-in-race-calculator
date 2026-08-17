@@ -45,7 +45,8 @@ export type ProductId =
   | 'coco-cream'
   | 'light-semi-thick-cream'
   | 'ratatouille'
-  | 'broccoli';
+  | 'broccoli'
+  | string;
 
 export type ProductKind =
   | 'cereal'

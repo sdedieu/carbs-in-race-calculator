@@ -1,18 +1,20 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
-import { Product, ProductKind } from '../../services/product.model';
+import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import { Nutrition, Product, ProductKind } from '../../services/product.model';
 import { QuantityStepperComponent } from '../../shared/ui/quantity-stepper.component';
+import { EMPTY_NUTRITION } from '../../services/product.service';
+import { NutritionValuesComponent } from '../../shared/ui/nutrition-values';
+import { NutritionTotalAmountsCardComponent } from '../../shared/ui/nutrition-total-amounts-card.component';
 
 const HOST_BINDINGS = { class: 'block min-w-0' };
 
 @Component({
   selector: 'app-fuel-plan-row',
-  standalone: true,
-  imports: [QuantityStepperComponent],
+  imports: [QuantityStepperComponent, NutritionValuesComponent, NutritionTotalAmountsCardComponent],
   host: HOST_BINDINGS,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <article
-      class="grid min-h-16 min-w-0 gap-3 rounded-lg border border-stone-900/10 bg-white p-3 lg:grid-cols-[minmax(0,1.6fr)_minmax(150px,170px)_repeat(3,minmax(64px,0.55fr))] lg:items-center"
+      class="grid min-h-16 min-w-0 gap-3 rounded-lg border border-stone-900/10 bg-white p-3 lg:grid-cols-[minmax(0,1fr)_minmax(150px,1.6fr)_minmax(150px,170px)_minmax(150px,200px)] lg:items-center"
       role="row"
       data-test="plan-row"
     >
@@ -26,6 +28,8 @@ const HOST_BINDINGS = { class: 'block min-w-0' };
         </div>
       </div>
 
+      <app-nutrition-values [nutrition]="nutrition()" />
+
       <div role="cell">
         <app-quantity-stepper
           [value]="quantity()"
@@ -34,19 +38,23 @@ const HOST_BINDINGS = { class: 'block min-w-0' };
         />
       </div>
 
-      <span class="min-w-0 font-extrabold" role="cell">{{ carbsLabel() }}</span>
-      <span class="min-w-0 font-extrabold" role="cell">{{ caloriesLabel() }}</span>
-      <span class="min-w-0 font-extrabold" role="cell">{{ sugarLabel() }}</span>
+      <app-nutrition-total-amounts-card
+        [total]="total()"
+        [nutritionToDisplay]="['carbs', 'protein', 'fat']"
+        [attr.data-test]="'food-row-total'"
+      />
     </article>
   `,
 })
 export class FuelPlanRowComponent {
   readonly product = input.required<Product>();
   readonly quantity = input.required<number>();
-  readonly carbsLabel = input.required<string>();
-  readonly caloriesLabel = input.required<string>();
-  readonly sugarLabel = input.required<string>();
+  readonly total = input.required<Nutrition>();
   readonly quantityChange = output<string | number>();
+
+  readonly nutrition = computed<Nutrition>(() => {
+    return this.product().nutritionPer100g ?? EMPTY_NUTRITION;
+  });
 
   protected emitQuantity(value: string | number): void {
     this.quantityChange.emit(value);

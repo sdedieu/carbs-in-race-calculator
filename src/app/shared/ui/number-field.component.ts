@@ -2,7 +2,6 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
 
 @Component({
   selector: 'app-number-field',
-  standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <label class="grid gap-2 text-sm font-bold text-stone-600" [attr.data-test]="dataTest()">

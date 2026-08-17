@@ -6,7 +6,6 @@ type CalculatorMode = 'race' | 'daily';
 
 @Component({
   selector: 'app-root',
-  standalone: true,
   imports: [DailyNutritionCalculatorComponent, RaceFuelCalculatorComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `

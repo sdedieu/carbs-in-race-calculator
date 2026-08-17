@@ -28,7 +28,6 @@ const HOST_BINDINGS = { class: 'block' };
 
 @Component({
   selector: 'app-daily-nutrition-calculator',
-  standalone: true,
   imports: [DailyFoodRowComponent],
   host: HOST_BINDINGS,
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -202,7 +201,7 @@ const HOST_BINDINGS = { class: 'block' };
 export class DailyNutritionCalculatorComponent {
   protected readonly state = inject(DailyNutritionState);
 
-  protected readonly filteredProducts = this.state.filteredProducts;
+  protected readonly filteredProducts = this.state.products;
   protected readonly calorieTarget = this.state.calorieTarget;
   protected readonly bodyMassKg = this.state.bodyMassKg;
   protected readonly goals = this.state.goals;

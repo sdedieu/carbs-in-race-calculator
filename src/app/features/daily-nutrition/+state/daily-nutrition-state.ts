@@ -29,22 +29,9 @@ export class DailyNutritionState {
   private readonly quantitiesSignal = signal<ProductQuantities>(
     this.productService.createEmptyQuantities(this.productService.dailyProducts()),
   );
-  readonly searchSignal = signal('');
+  readonly searchSignal = this.productService.search;
 
   readonly products = computed(() => this.productService.dailyProducts());
-  readonly filteredProducts = computed(() => {
-    const searchTerm = this.searchSignal().toLowerCase();
-
-    if (!searchTerm) {
-      return this.products();
-    }
-
-    return this.products().filter(
-      (product) =>
-        product.name.toLowerCase().includes(searchTerm) ||
-        product.kind?.toLowerCase().includes(searchTerm),
-    );
-  });
   readonly calorieTarget = computed(() => this.calorieTargetSignal());
   readonly bodyMassKg = computed(() => this.bodyMassKgSignal());
 
@@ -137,7 +124,7 @@ export class DailyNutritionState {
   }
 
   setSearchTerm(searchTerm: string): void {
-    this.searchSignal.set(searchTerm);
+    this.productService.search.set(searchTerm);
   }
 
   resetPlan(): void {

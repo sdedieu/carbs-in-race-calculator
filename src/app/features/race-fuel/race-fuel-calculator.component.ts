@@ -4,7 +4,6 @@ import { NumberFieldComponent } from '../../shared/ui/number-field.component';
 import { NutritionSummaryCardComponent } from '../../shared/ui/nutrition-summary-card.component';
 import { CarbTargetPanelComponent } from './carb-target-panel.component';
 import { FuelPlanRowComponent } from './fuel-plan-row.component';
-import { ProductLibraryCardComponent } from './product-library-card.component';
 import { RaceFuelState } from './+state/race-fuel-state';
 
 interface TotalCard {
@@ -18,13 +17,11 @@ const HOST_BINDINGS = { class: 'block' };
 
 @Component({
   selector: 'app-race-fuel-calculator',
-  standalone: true,
   imports: [
     CarbTargetPanelComponent,
     FuelPlanRowComponent,
     NumberFieldComponent,
     NutritionSummaryCardComponent,
-    ProductLibraryCardComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: HOST_BINDINGS,
@@ -101,9 +98,7 @@ const HOST_BINDINGS = { class: 'block' };
         }
       </section>
 
-      <section
-        class="grid min-w-0 items-start gap-5 xl:grid-cols-[minmax(0,1.55fr)_minmax(360px,0.85fr)]"
-      >
+      <section class="grid min-w-0 items-start gap-5">
         <section
           class="min-w-0 rounded-lg border border-stone-900/10 bg-white/90 p-4 shadow-xl shadow-stone-900/5 lg:p-5"
           aria-labelledby="planner-title"
@@ -146,36 +141,12 @@ const HOST_BINDINGS = { class: 'block' };
               <app-fuel-plan-row
                 [product]="product"
                 [quantity]="quantity(product.id)"
-                [carbsLabel]="format(productTotal(product, 'carbs'), 'g', 1)"
-                [caloriesLabel]="format(productTotal(product, 'calories'), 'kcal', 0)"
-                [sugarLabel]="format(productTotal(product, 'sugar'), 'g', 1)"
+                [total]="productTotal(product)"
                 (quantityChange)="setQuantity(product.id, $event)"
               />
             }
           </div>
         </section>
-
-        <aside
-          class="rounded-lg border border-stone-900/10 bg-white/90 p-4 shadow-xl shadow-stone-900/5 lg:p-5"
-          aria-labelledby="library-title"
-          data-test="product-library"
-        >
-          <div class="mb-4">
-            <p class="mb-2 text-xs font-extrabold tracking-widest text-emerald-700 uppercase">
-              Per serving
-            </p>
-            <h2 id="library-title" class="text-2xl font-black tracking-normal">Product library</h2>
-          </div>
-
-          <div class="grid gap-3">
-            @for (product of products(); track product.id) {
-              <app-product-library-card
-                [product]="product"
-                [nutrition]="state.nutritionPerServing(product)"
-              />
-            }
-          </div>
-        </aside>
       </section>
     </section>
   `,
@@ -231,8 +202,8 @@ export class RaceFuelCalculatorComponent {
     this.state.resetPlan();
   }
 
-  protected productTotal(product: Product, metric: keyof Nutrition): number {
-    return this.state.selectedNutrition(product)[metric];
+  protected productTotal(product: Product): Nutrition {
+    return this.state.selectedNutrition(product);
   }
 
   protected format(value: number, unit = '', maximumFractionDigits = 0): string {

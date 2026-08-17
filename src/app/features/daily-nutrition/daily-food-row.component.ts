@@ -1,11 +1,13 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { Nutrition, Product } from '../../services/product.model';
+import { NutritionValuesComponent } from '../../shared/ui/nutrition-values';
+import { NutritionTotalAmountsCardComponent } from '../../shared/ui/nutrition-total-amounts-card.component';
 
 const HOST_BINDINGS = { class: 'block min-w-0' };
 
 @Component({
   selector: 'app-daily-food-row',
-  standalone: true,
+  imports: [NutritionValuesComponent, NutritionTotalAmountsCardComponent],
   host: HOST_BINDINGS,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -24,35 +26,7 @@ const HOST_BINDINGS = { class: 'block min-w-0' };
         </small>
       </div>
 
-      <dl
-        class="grid grid-cols-3 gap-x-3 gap-y-2 text-sm sm:grid-cols-6"
-        data-test="per-100g-values"
-      >
-        <div>
-          <dt class="font-bold text-stone-500">Energy</dt>
-          <dd class="font-black">{{ format(nutrition().calories, 'kcal', 0) }}</dd>
-        </div>
-        <div>
-          <dt class="font-bold text-stone-500">Carbs</dt>
-          <dd class="font-black">{{ format(nutrition().carbs, 'g', 1) }}</dd>
-        </div>
-        <div>
-          <dt class="font-bold text-stone-500">Sugar</dt>
-          <dd class="font-black">{{ format(nutrition().sugar, 'g', 1) }}</dd>
-        </div>
-        <div>
-          <dt class="font-bold text-stone-500">Fiber</dt>
-          <dd class="font-black">{{ format(nutrition().fiber, 'g', 1) }}</dd>
-        </div>
-        <div>
-          <dt class="font-bold text-stone-500">Fat</dt>
-          <dd class="font-black">{{ format(nutrition().fat, 'g', 1) }}</dd>
-        </div>
-        <div>
-          <dt class="font-bold text-stone-500">Protein</dt>
-          <dd class="font-black">{{ format(nutrition().protein, 'g', 1) }}</dd>
-        </div>
-      </dl>
+      <app-nutrition-values [nutrition]="nutrition()" />
 
       <label class="grid gap-2 text-sm font-bold text-stone-600">
         <span>Amount (g)</span>
@@ -69,17 +43,11 @@ const HOST_BINDINGS = { class: 'block min-w-0' };
         />
       </label>
 
-      <div class="rounded-lg bg-stone-100 px-3 py-2" data-test="food-row-total">
-        <span class="block text-xs font-extrabold text-stone-500 uppercase">Amount total</span>
-        <strong class="block text-lg font-black">
-          {{ format(total().calories, 'kcal', 0) }}
-        </strong>
-        <small class="font-bold text-stone-600">
-          {{ format(total().carbs, 'g carbs', 1) }} ·
-          {{ format(total().protein, 'g protein', 1) }} ·
-          {{ format(total().fat, 'g fat', 1) }}
-        </small>
-      </div>
+      <app-nutrition-total-amounts-card
+        [total]="total()"
+        [nutritionToDisplay]="['carbs', 'protein', 'fat']"
+        [attr.data-test]="'food-row-total'"
+      />
     </article>
   `,
 })
