@@ -1,6 +1,6 @@
 import { computed, debounced, inject, Injectable, signal } from '@angular/core';
 import { Nutrition, Product, ProductQuantities } from './product.model';
-import { EMPTY, Observable, of } from 'rxjs';
+import { EMPTY, map, Observable, of } from 'rxjs';
 import {
   Firestore,
   collection,
@@ -40,7 +40,16 @@ export class ProductService {
   favoritesResource = rxResource({
     stream: () => {
       const favoriteProductsCollection = collection(this.firestore, 'users/me/favorites');
-      return collectionData(favoriteProductsCollection, { idField: 'id' }) as Observable<Product[]>;
+      return (
+        collectionData(favoriteProductsCollection, { idField: 'id' }) as Observable<Product[]>
+      ).pipe(
+        map((products) =>
+          products.map((product) => ({
+            ...product,
+            isFavorite: true,
+          })),
+        ),
+      );
     },
   });
 
@@ -62,7 +71,9 @@ export class ProductService {
         ? (collectionData(q, { idField: 'id' }) as Observable<Product[]>)
         : of([]);
 
-      return products$;
+      return products$.pipe(
+        map((products) => products.map((product) => ({ ...product, isFavorite: false }))),
+      );
     },
   });
 

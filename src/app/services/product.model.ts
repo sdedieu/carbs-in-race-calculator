@@ -86,6 +86,7 @@ export interface Nutrition {
 export interface Product {
   readonly id: ProductId;
   readonly name: string;
+  readonly isFavorite: boolean;
   readonly type: 'daily' | 'race' | 'both';
   readonly kind: ProductKind;
   readonly brand?: string;

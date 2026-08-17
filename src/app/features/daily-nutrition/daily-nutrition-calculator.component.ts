@@ -1,14 +1,19 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { Nutrition, Product, ProductId } from '../../services/product.model';
-import { DailyNutritionState } from './+state/daily-nutrition-state';
+import { DailyNutritionState, DailyNutritionStatus } from './+state/daily-nutrition-state';
 import { DailyFoodRowComponent } from './daily-food-row.component';
 
-interface GoalCard {
-  key: 'calories' | 'protein' | 'fat' | 'carbs';
+interface GoalStatusCard {
+  key: 'calories' | 'protein' | 'fat' | 'carbs' | 'sugar';
   label: string;
-  value: string;
+  goalValue: string;
+  currentValue: string;
+  progress: number;
+  progressDetail: string;
+  progressColor: string;
+  textColor: string;
   detail: string;
-  classes: string;
+  color: string;
 }
 
 interface TotalCard {
@@ -18,7 +23,7 @@ interface TotalCard {
   goal: string;
 }
 
-interface CalorieStatus {
+interface NutritionStatus {
   state: 'under target' | 'on target' | 'over target';
   detail: string;
   progress: number;
@@ -58,7 +63,7 @@ const HOST_BINDINGS = { class: 'block' };
 
         <div class="grid grid-cols-1 gap-3 sm:grid-cols-2" aria-label="Daily nutrition settings">
           <label class="grid gap-2 text-sm font-bold text-stone-600" data-test="calorie-target">
-            <span>Calorie target</span>
+            <span>BMR (kcal)</span>
             <input
               class="min-h-11 rounded-lg border border-stone-900/20 bg-white px-3 text-base font-extrabold text-stone-900 outline-none focus:border-teal-700 focus:ring-4 focus:ring-teal-700/15"
               data-test="calorie-target-input"
@@ -92,7 +97,8 @@ const HOST_BINDINGS = { class: 'block' };
               {{ calorieStatus().state }}
             </span>
             <strong class="text-lg whitespace-nowrap">
-              {{ format(totals().calories, 'kcal', 0) }}
+              {{ format(totals().calories, 'kcal', 0) }} /
+              {{ format(goals().calorieMinimum, 'kcal', 0) }}
             </strong>
           </div>
           <progress
@@ -111,11 +117,35 @@ const HOST_BINDINGS = { class: 'block' };
         aria-label="Daily macro goals"
         data-test="macro-goals"
       >
-        @for (card of goalCards(); track card.key) {
-          <article [class]="goalCardClasses(card.classes)" [attr.data-test]="card.key + '-goal'">
-            <span class="text-xs font-extrabold text-stone-500 uppercase">{{ card.label }}</span>
-            <strong class="text-2xl leading-none font-black">{{ card.value }}</strong>
-            <small class="font-bold text-stone-500">{{ card.detail }}</small>
+        @for (card of goalStatusCards(); track card.key) {
+          <article [class]="goalCardClasses(card.color)" [attr.data-test]="card.key + '-goal'">
+            <div>
+              <div class="flex items-end justify-between gap-4">
+                <span [class]="'text-xs font-extrabold uppercase ' + card.textColor">{{
+                  card.label
+                }}</span>
+
+                <strong [class]="'text-base font-extrabold uppercase ' + card.textColor"
+                  >{{ card.currentValue }}
+                  @if (card.goalValue) {
+                    <span class="text-xs"> / {{ card.goalValue }}</span>
+                  }
+                </strong>
+              </div>
+              <div class="flex items-end">
+                <small class="ml-auto font-bold text-stone-500">{{ card.detail }}</small>
+              </div>
+            </div>
+            <progress
+              [class]="
+                'h-2 w-full overflow-hidden rounded-full accent-teal-700 [&::-webkit-progress-bar]:bg-gray-200 [&::-webkit-progress-value]:' +
+                card.progressColor
+              "
+              [value]="card.progress"
+              max="100"
+              [aria-label]="'Daily ' + card.label + ' target progress'"
+            ></progress>
+            <small class="font-bold text-stone-500">{{ card.progressDetail }}</small>
           </article>
         }
       </section>
@@ -127,24 +157,6 @@ const HOST_BINDINGS = { class: 'block' };
         Protein is 2 g/kg, sugar and fat are both 1 g/kg. Their calories are reserved first;
         carbohydrates fill the calories remaining in the 90–100% target range.
       </p>
-
-      <section
-        class="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-6"
-        aria-label="Selected food nutrition totals"
-        data-test="daily-totals"
-      >
-        @for (card of totalCards(); track card.key) {
-          <article
-            class="grid min-h-28 content-between gap-2 rounded-lg border border-stone-900/10 bg-white p-4 shadow-sm"
-            data-test="daily-total-card"
-            [attr.data-metric]="card.key"
-          >
-            <span class="text-xs font-extrabold text-stone-500 uppercase">{{ card.label }}</span>
-            <strong class="text-2xl leading-none font-black">{{ card.value }}</strong>
-            <small class="font-bold text-stone-500">{{ card.goal }}</small>
-          </article>
-        }
-      </section>
 
       <section
         class="min-w-0 rounded-lg border border-stone-900/10 bg-white/90 p-4 shadow-xl shadow-stone-900/5 lg:p-5"
@@ -208,52 +220,78 @@ export class DailyNutritionCalculatorComponent {
   protected readonly totals = this.state.totals;
   protected readonly searchSignal = this.state.searchSignal;
 
-  protected readonly calorieStatus = computed<CalorieStatus>(() => {
-    const status = this.state.calorieStatus();
-    const suffix =
-      status.state === 'under target'
-        ? 'to the target range'
-        : status.state === 'over target'
-          ? 'above target'
-          : 'available in the range';
-
-    return {
-      ...status,
-      detail: `${this.format(status.caloriesToBoundary, 'kcal', 0)} ${suffix}`,
-    };
+  protected readonly calorieStatus = computed<NutritionStatus>(() => {
+    return this.computeStatus(this.state.calorieStatus());
   });
 
-  protected readonly goalCards = computed<ReadonlyArray<GoalCard>>(() => {
-    const goals = this.goals();
+  protected readonly proteinStatus = computed<NutritionStatus>(() => {
+    return this.computeStatus(this.state.proteinStatus());
+  });
 
+  protected readonly fatStatus = computed<NutritionStatus>(() => {
+    return this.computeStatus(this.state.fatStatus());
+  });
+
+  protected readonly carbsStatus = computed<NutritionStatus>(() => {
+    return this.computeStatus(this.state.sugarStatus());
+  });
+
+  protected readonly sugarStatus = computed<NutritionStatus>(() => {
+    return this.computeStatus(this.state.sugarStatus());
+  });
+
+  protected readonly goalStatusCards = computed<ReadonlyArray<GoalStatusCard>>(() => {
+    const goals = this.goals();
+    const totals = this.totals();
+    console.log(this.proteinStatus());
     return [
       {
-        key: 'calories',
-        label: 'Acceptable calories',
-        value: this.formatRange(goals.calorieMinimum, goals.calorieMaximum, 'kcal', 0),
-        detail: '90–100% of your calorie target',
-        classes: 'border-t-orange-500',
-      },
-      {
         key: 'protein',
-        label: 'Protein goal',
-        value: this.format(goals.proteinGrams, 'g', 1),
-        detail: `${this.format(goals.proteinCalories, 'kcal', 0)} · 2 g/kg body mass`,
-        classes: 'border-t-teal-600',
+        label: 'Protein',
+        goalValue: `${this.format(goals.proteinGrams, 'g', 1)}`,
+        currentValue: `${this.format(totals.protein, 'g', 1)}`,
+        detail: '(2 g/kg body mass)',
+        progress: this.proteinStatus().progress,
+        progressDetail: this.proteinStatus().detail,
+        progressColor: 'bg-teal-600',
+        textColor: 'text-teal-600',
+        color: 'teal-600',
       },
       {
         key: 'fat',
-        label: 'Fat goal',
-        value: this.format(goals.fatGrams, 'g', 1),
-        detail: `${this.format(goals.fatCalories, 'kcal', 0)} · 1 g/kg body mass`,
-        classes: 'border-t-amber-500',
+        label: 'Fat',
+        goalValue: `${this.format(goals.fatGrams, 'g', 1)}`,
+        currentValue: `${this.format(totals.fat, 'g', 1)}`,
+        detail: `(1 g/kg body mass)`,
+        progress: this.fatStatus().progress,
+        progressDetail: this.fatStatus().detail,
+        progressColor: 'bg-amber-600',
+        textColor: 'text-amber-600',
+        color: 'amber-500',
+      },
+      {
+        key: 'sugar',
+        label: 'Sugar',
+        goalValue: `${this.format(goals.sugarGrams, 'g', 1)}`,
+        currentValue: `${this.format(totals.sugar, 'g', 1)}`,
+        detail: `(1 g/kg body mass)`,
+        progress: this.sugarStatus().progress,
+        progressDetail: this.sugarStatus().detail,
+        progressColor: 'bg-orange-600',
+        textColor: 'text-orange-600',
+        color: 'orange-500',
       },
       {
         key: 'carbs',
-        label: 'Carbohydrate goal',
-        value: this.formatRange(goals.carbohydrateMinimum, goals.carbohydrateMaximum, 'g', 1),
-        detail: 'Calories left after protein and fat',
-        classes: 'border-t-emerald-700',
+        label: 'Carbohydrates',
+        goalValue: ``,
+        currentValue: `${this.format(totals.sugar, 'g', 1)}`,
+        detail: '(Calories left)',
+        progress: this.carbsStatus().progress,
+        progressDetail: '',
+        progressColor: 'bg-emerald-600',
+        textColor: 'text-emerald-600',
+        color: 'emerald-700',
       },
     ];
   });
@@ -336,7 +374,7 @@ export class DailyNutritionCalculatorComponent {
   }
 
   protected goalCardClasses(toneClass: string): string {
-    return `grid min-h-36 content-between gap-3 rounded-lg border border-stone-900/10 bg-white p-4 shadow-sm border-t-4 ${toneClass}`;
+    return `grid min-h-36 content-between gap-3 rounded-lg border border-stone-900/10 bg-white p-4 shadow-sm border-t-4 border-t-${toneClass}`;
   }
 
   protected calorieStatusClasses(): string {
@@ -362,6 +400,20 @@ export class DailyNutritionCalculatorComponent {
     const formatter = new Intl.NumberFormat('en-US', { maximumFractionDigits });
 
     return `${formatter.format(minimum)}–${formatter.format(maximum)} ${unit}`;
+  }
+
+  private computeStatus(status: DailyNutritionStatus): NutritionStatus {
+    const suffix =
+      status.state === 'under target'
+        ? 'to the target range'
+        : status.state === 'over target'
+          ? 'above target'
+          : 'available in the range';
+
+    return {
+      ...status,
+      detail: `${this.format(status.toBoundary, 'kcal', 0)} ${suffix}`,
+    };
   }
 
   protected format(value: number, unit: string, maximumFractionDigits: number): string {

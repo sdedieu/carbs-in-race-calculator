@@ -7,6 +7,7 @@ export const TEST_PRODUCTS: ReadonlyArray<Product> = [
     id: 'maurten-gel-160',
     brand: 'Maurten',
     name: 'Gel 160',
+    isFavorite: true,
     type: 'race',
     kind: 'gel',
     serving: '1 sachet, 65 g',
@@ -24,6 +25,7 @@ export const TEST_PRODUCTS: ReadonlyArray<Product> = [
     id: 'baouw-electrolytes-blackberry',
     brand: 'Baouw',
     name: 'Electrolytes Blackberry Blackcurrant',
+    isFavorite: true,
     type: 'race',
     kind: 'electrolyte',
     serving: '1 tablet in 500 ml, 5 g',
@@ -45,6 +47,7 @@ export const TEST_PRODUCTS: ReadonlyArray<Product> = [
   {
     id: 'rolled-oats',
     name: 'Rolled oats',
+    isFavorite: true,
     type: 'daily',
     kind: 'cereal',
     servingSuggestion: 'Typical dry portion: 40-80 g',
@@ -61,6 +64,7 @@ export const TEST_PRODUCTS: ReadonlyArray<Product> = [
   {
     id: 'banana',
     name: 'Banana',
+    isFavorite: true,
     type: 'both',
     kind: 'fruit',
     serving: '1 medium peeled banana, about 120 g',
@@ -79,6 +83,7 @@ export const TEST_PRODUCTS: ReadonlyArray<Product> = [
   {
     id: 'olive-oil',
     name: 'Olive oil',
+    isFavorite: true,
     type: 'daily',
     kind: 'fat',
     servingSuggestion: 'One tablespoon: about 14 g',

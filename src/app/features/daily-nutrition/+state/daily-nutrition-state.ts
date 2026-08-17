@@ -14,9 +14,9 @@ export interface DailyNutritionGoals {
   readonly fatCalories: number;
 }
 
-export interface DailyCalorieStatus {
+export interface DailyNutritionStatus {
   readonly state: 'under target' | 'on target' | 'over target';
-  readonly caloriesToBoundary: number;
+  readonly toBoundary: number;
   readonly progress: number;
 }
 
@@ -65,33 +65,32 @@ export class DailyNutritionState {
     );
   });
 
-  readonly calorieStatus = computed<DailyCalorieStatus>(() => {
-    const calories = this.totals().calories;
-    const goals = this.goals();
-    const progress =
-      goals.calorieMaximum > 0 ? Math.min(100, (calories / goals.calorieMaximum) * 100) : 0;
+  readonly calorieStatus = computed<DailyNutritionStatus>(() => {
+    return this.computeSatus(
+      this.totals().calories,
+      this.goals().calorieMaximum,
+      this.goals().calorieMinimum,
+    );
+  });
 
-    if (calories < goals.calorieMinimum) {
-      return {
-        state: 'under target',
-        caloriesToBoundary: goals.calorieMinimum - calories,
-        progress,
-      };
-    }
+  readonly proteinStatus = computed<DailyNutritionStatus>(() => {
+    return this.computeSatus(this.totals().protein, this.goals().proteinGrams);
+  });
 
-    if (calories > goals.calorieMaximum) {
-      return {
-        state: 'over target',
-        caloriesToBoundary: calories - goals.calorieMaximum,
-        progress,
-      };
-    }
+  readonly fatStatus = computed<DailyNutritionStatus>(() => {
+    return this.computeSatus(this.totals().fat, this.goals().fatGrams);
+  });
 
-    return {
-      state: 'on target',
-      caloriesToBoundary: goals.calorieMaximum - calories,
-      progress,
-    };
+  readonly carbsStatus = computed<DailyNutritionStatus>(() => {
+    return this.computeSatus(
+      this.totals().carbs,
+      this.goals().carbohydrateMaximum,
+      this.goals().carbohydrateMinimum,
+    );
+  });
+
+  readonly sugarStatus = computed<DailyNutritionStatus>(() => {
+    return this.computeSatus(this.totals().sugar, this.goals().sugarGrams);
   });
 
   quantity(productId: ProductId): number {
@@ -153,5 +152,31 @@ export class DailyNutritionState {
     const normalized = Number.isFinite(parsed) ? parsed : minimum;
 
     return Math.min(maximum, Math.max(minimum, normalized));
+  }
+
+  private computeSatus(value: number, max: number, min?: number): DailyNutritionStatus {
+    const progress = max > 0 ? Math.min(100, (value / max) * 100) : 0;
+
+    if (value < (min ?? max)) {
+      return {
+        state: 'under target',
+        toBoundary: (min ?? max) - value,
+        progress,
+      };
+    }
+
+    if (value > max) {
+      return {
+        state: 'over target',
+        toBoundary: value - max,
+        progress,
+      };
+    }
+
+    return {
+      state: 'on target',
+      toBoundary: max - value,
+      progress,
+    };
   }
 }
