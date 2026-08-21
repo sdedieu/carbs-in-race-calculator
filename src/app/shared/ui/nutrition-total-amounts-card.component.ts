@@ -9,7 +9,7 @@ import { Nutrition } from '../../services/product.model';
   template: `
     <span class="block text-xs font-extrabold text-stone-500 uppercase">Amount total</span>
     <strong class="block text-lg font-black">
-      {{ format(total().calories, 'kcal', 0) }}
+      {{ caloriesLabel() }}
     </strong>
     <small class="font-bold text-stone-600">
       {{ nutritionLabels() }}
@@ -22,13 +22,15 @@ export class NutritionTotalAmountsCardComponent {
 
   readonly nutritionToDisplay = input.required<(keyof Nutrition)[]>();
 
+  readonly caloriesLabel = computed(() => this.format(this.total().calories, 'kcal', 0));
+
   readonly nutritionLabels = computed(() =>
     this.nutritionToDisplay()
       .map((key) => `${this.format(this.total()[key], 'g', 1)} ${key}`)
       .join(' · '),
   );
 
-  protected format(value: number, unit: string, maximumFractionDigits: number): string {
+  private format(value: number, unit: string, maximumFractionDigits: number): string {
     return `${new Intl.NumberFormat('en-US', { maximumFractionDigits }).format(value)} ${unit}`;
   }
 }

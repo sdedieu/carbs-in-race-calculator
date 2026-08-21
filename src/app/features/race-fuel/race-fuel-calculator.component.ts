@@ -13,6 +13,12 @@ interface TotalCard {
   tone: string;
 }
 
+interface FuelPlanRowViewModel {
+  readonly product: Product;
+  readonly quantity: number;
+  readonly total: Nutrition;
+}
+
 const HOST_BINDINGS = { class: 'block' };
 
 @Component({
@@ -76,9 +82,9 @@ const HOST_BINDINGS = { class: 'block' };
         <app-target-status-card
           dataTest="carb-target"
           [state]="carbTarget().state"
-          [currentLabel]="format(totals().carbs, 'g', 1)"
-          [goalLabel]="format(carbTarget().goal, 'g', 0)"
-          [detailLabel]="carbTargetDeltaLabel()"
+          [currentLabel]="carbTargetLabels().current"
+          [goalLabel]="carbTargetLabels().goal"
+          [detailLabel]="carbTargetLabels().detail"
           [progress]="carbTarget().progress"
           progressLabel="Carbohydrate target progress"
         />
@@ -138,12 +144,12 @@ const HOST_BINDINGS = { class: 'block' };
               <span role="columnheader">Sugar</span>
             </div>
 
-            @for (product of products(); track product.id) {
+            @for (row of productRows(); track row.product.id) {
               <app-fuel-plan-row
-                [product]="product"
-                [quantity]="quantity(product.id)"
-                [total]="productTotal(product)"
-                (quantityChange)="setQuantity(product.id, $event)"
+                [product]="row.product"
+                [quantity]="row.quantity"
+                [total]="row.total"
+                (quantityChange)="setQuantity(row.product.id, $event)"
               />
             }
           </div>
@@ -163,6 +169,28 @@ export class RaceFuelCalculatorComponent {
   protected readonly perHour = this.state.perHour;
   protected readonly carbTarget = this.state.carbTarget;
 
+  protected readonly carbTargetLabels = computed(() => {
+    const target = this.carbTarget();
+    const delta = target.delta;
+
+    return {
+      current: this.format(this.totals().carbs, 'g', 1),
+      goal: this.format(target.goal, 'g', 0),
+      detail:
+        delta >= 0
+          ? `${this.format(delta, 'g', 1)} above target`
+          : `${this.format(delta * -1, 'g', 1)} remaining`,
+    };
+  });
+
+  protected readonly productRows = computed<ReadonlyArray<FuelPlanRowViewModel>>(() =>
+    this.products().map((product) => ({
+      product,
+      quantity: this.state.quantity(product.id),
+      total: this.state.selectedNutrition(product),
+    })),
+  );
+
   protected readonly totalCards = computed<ReadonlyArray<TotalCard>>(() => {
     const totals = this.totals();
     const perHour = this.perHour();
@@ -178,10 +206,6 @@ export class RaceFuelCalculatorComponent {
       this.card('Protein', totals.protein, 'g', perHour.protein, 'g/h', 'teal'),
     ];
   });
-
-  protected quantity(productId: ProductId): number {
-    return this.state.quantity(productId);
-  }
 
   protected setRaceHours(value: string): void {
     this.state.setRaceHours(value);
@@ -203,27 +227,13 @@ export class RaceFuelCalculatorComponent {
     this.state.resetPlan();
   }
 
-  protected productTotal(product: Product): Nutrition {
-    return this.state.selectedNutrition(product);
-  }
-
-  protected format(value: number, unit = '', maximumFractionDigits = 0): string {
+  private format(value: number, unit = '', maximumFractionDigits = 0): string {
     const formatted = new Intl.NumberFormat('en-US', {
       maximumFractionDigits,
       minimumFractionDigits: value > 0 && value < 1 ? 1 : 0,
     }).format(value);
 
     return unit ? `${formatted} ${unit}` : formatted;
-  }
-
-  protected carbTargetDeltaLabel(): string {
-    const delta = this.carbTarget().delta;
-
-    if (delta >= 0) {
-      return `${this.format(delta, 'g', 1)} above target`;
-    }
-
-    return `${this.format(delta * -1, 'g', 1)} remaining`;
   }
 
   private card(

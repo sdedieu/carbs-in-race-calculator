@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
 import { DailyNutritionCalculatorComponent } from './features/daily-nutrition/daily-nutrition-calculator.component';
 import { RaceFuelCalculatorComponent } from './features/race-fuel/race-fuel-calculator.component';
 
@@ -37,7 +37,7 @@ type CalculatorMode = 'race' | 'daily';
             data-test="calculator-mode"
           >
             <button
-              [class]="modeButtonClasses('race')"
+              [class]="modeButtonClasses().race"
               type="button"
               data-test="show-race-calculator"
               [attr.aria-pressed]="activeCalculator() === 'race'"
@@ -46,7 +46,7 @@ type CalculatorMode = 'race' | 'daily';
               Race fuel
             </button>
             <button
-              [class]="modeButtonClasses('daily')"
+              [class]="modeButtonClasses().daily"
               type="button"
               data-test="show-daily-calculator"
               [attr.aria-pressed]="activeCalculator() === 'daily'"
@@ -72,15 +72,18 @@ type CalculatorMode = 'race' | 'daily';
 export class App {
   protected readonly activeCalculator = signal<CalculatorMode>('race');
 
+  protected readonly modeButtonClasses = computed<Record<CalculatorMode, string>>(() => {
+    const base = 'min-h-10 rounded-md px-3 text-sm font-black transition-colors sm:px-5';
+    const active = `${base} bg-white text-stone-950 shadow-sm`;
+    const inactive = `${base} text-stone-300 hover:bg-white/10 hover:text-white`;
+
+    return {
+      race: this.activeCalculator() === 'race' ? active : inactive,
+      daily: this.activeCalculator() === 'daily' ? active : inactive,
+    };
+  });
+
   protected selectCalculator(mode: CalculatorMode): void {
     this.activeCalculator.set(mode);
-  }
-
-  protected modeButtonClasses(mode: CalculatorMode): string {
-    const base = 'min-h-10 rounded-md px-3 text-sm font-black transition-colors sm:px-5';
-
-    return this.activeCalculator() === mode
-      ? `${base} bg-white text-stone-950 shadow-sm`
-      : `${base} text-stone-300 hover:bg-white/10 hover:text-white`;
   }
 }

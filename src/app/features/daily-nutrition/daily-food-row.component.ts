@@ -89,8 +89,4 @@ export class DailyFoodRowComponent {
   protected emitQuantity(event: Event): void {
     this.quantityChange.emit((event.target as HTMLInputElement).value);
   }
-
-  protected format(value: number, unit: string, maximumFractionDigits: number): string {
-    return `${new Intl.NumberFormat('en-US', { maximumFractionDigits }).format(value)} ${unit}`;
-  }
 }

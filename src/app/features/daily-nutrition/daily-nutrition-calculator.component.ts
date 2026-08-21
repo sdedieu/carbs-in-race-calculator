@@ -14,14 +14,14 @@ interface GoalStatusCard {
   progressColor: string;
   textColor: string;
   detail: string;
-  color: string;
+  classes: string;
 }
 
-interface TotalCard {
-  key: keyof Nutrition;
-  label: string;
-  value: string;
-  goal: string;
+interface DailyFoodRowViewModel {
+  readonly product: Product;
+  readonly nutrition: Nutrition;
+  readonly quantity: number;
+  readonly total: Nutrition;
 }
 
 interface NutritionStatus {
@@ -95,8 +95,8 @@ const HOST_BINDINGS = { class: 'block' };
         <app-target-status-card
           dataTest="daily-calorie-status"
           [state]="calorieStatus().state"
-          [currentLabel]="format(totals().calories, 'kcal', 0)"
-          [goalLabel]="format(goals().calorieMinimum, 'kcal', 0)"
+          [currentLabel]="calorieLabels().current"
+          [goalLabel]="calorieLabels().goal"
           [detailLabel]="calorieStatus().detail"
           [progress]="calorieStatus().progress"
           progressLabel="Daily calorie target progress"
@@ -109,7 +109,7 @@ const HOST_BINDINGS = { class: 'block' };
         data-test="macro-goals"
       >
         @for (card of goalStatusCards(); track card.key) {
-          <article [class]="goalCardClasses(card.color)" [attr.data-test]="card.key + '-goal'">
+          <article [class]="card.classes" [attr.data-test]="card.key + '-goal'">
             <div>
               <div class="flex items-end justify-between gap-4">
                 <span [class]="'text-xs font-extrabold uppercase ' + card.textColor">{{
@@ -208,15 +208,15 @@ const HOST_BINDINGS = { class: 'block' };
         </p>
 
         <div class="grid gap-3" role="list" aria-label="Everyday food library">
-          @for (product of filteredProducts(); track product.id) {
+          @for (row of productRows(); track row.product.id) {
             <app-daily-food-row
               role="listitem"
-              [product]="product"
-              [nutrition]="state.nutritionPer100g(product)"
-              [quantity]="quantity(product.id)"
-              [total]="foodTotal(product)"
-              (quantityChange)="setQuantity(product.id, $event)"
-              (favoriteClicked)="favoriteClicked(product.id)"
+              [product]="row.product"
+              [nutrition]="row.nutrition"
+              [quantity]="row.quantity"
+              [total]="row.total"
+              (quantityChange)="setQuantity(row.product.id, $event)"
+              (favoriteClicked)="favoriteClicked(row.product.id)"
             />
           }
         </div>
@@ -236,6 +236,11 @@ export class DailyNutritionCalculatorComponent {
   protected readonly isLoading = this.state.isLoading;
 
   protected readonly favoriteClicked = this.state.favoriteClicked.bind(this.state);
+
+  protected readonly calorieLabels = computed(() => ({
+    current: this.format(this.totals().calories, 'kcal', 0),
+    goal: this.format(this.goals().calorieMinimum, 'kcal', 0),
+  }));
 
   protected readonly calorieStatus = computed<NutritionStatus>(() => {
     return this.computeStatus(this.state.calorieStatus());
@@ -272,7 +277,7 @@ export class DailyNutritionCalculatorComponent {
         progressDetail: this.proteinStatus().detail,
         progressColor: '[&::-webkit-progress-value]:bg-teal-600',
         textColor: 'text-teal-600',
-        color: 'teal-600',
+        classes: this.goalCardClasses('teal-600'),
       },
       {
         key: 'fat',
@@ -284,7 +289,7 @@ export class DailyNutritionCalculatorComponent {
         progressDetail: this.fatStatus().detail,
         progressColor: '[&::-webkit-progress-value]:bg-amber-600',
         textColor: 'text-amber-600',
-        color: 'amber-500',
+        classes: this.goalCardClasses('amber-500'),
       },
       {
         key: 'sugar',
@@ -296,7 +301,7 @@ export class DailyNutritionCalculatorComponent {
         progressDetail: this.sugarStatus().detail,
         progressColor: '[&::-webkit-progress-value]:bg-orange-600',
         textColor: 'text-orange-600',
-        color: 'orange-500',
+        classes: this.goalCardClasses('orange-500'),
       },
       {
         key: 'carbs',
@@ -308,63 +313,19 @@ export class DailyNutritionCalculatorComponent {
         progressDetail: '',
         progressColor: '[&::-webkit-progress-value]:bg-emerald-600',
         textColor: 'text-emerald-600',
-        color: 'emerald-700',
+        classes: this.goalCardClasses('emerald-700'),
       },
     ];
   });
 
-  protected readonly totalCards = computed<ReadonlyArray<TotalCard>>(() => {
-    const totals = this.totals();
-    const goals = this.goals();
-
-    return [
-      {
-        key: 'calories',
-        label: 'Calories',
-        value: this.format(totals.calories, 'kcal', 0),
-        goal: `Goal ${this.formatRange(goals.calorieMinimum, goals.calorieMaximum, 'kcal', 0)}`,
-      },
-      {
-        key: 'carbs',
-        label: 'Carbs',
-        value: this.format(totals.carbs, 'g', 1),
-        goal: `Goal ${this.formatRange(
-          goals.carbohydrateMinimum,
-          goals.carbohydrateMaximum,
-          'g',
-          1,
-        )}`,
-      },
-      {
-        key: 'protein',
-        label: 'Protein',
-        value: this.format(totals.protein, 'g', 1),
-        goal: `Goal ${this.format(goals.proteinGrams, 'g', 1)}`,
-      },
-      {
-        key: 'fat',
-        label: 'Fat',
-        value: this.format(totals.fat, 'g', 1),
-        goal: `Goal ${this.format(goals.fatGrams, 'g', 1)}`,
-      },
-      {
-        key: 'sugar',
-        label: 'Sugar',
-        value: this.format(totals.sugar, 'g', 1),
-        goal: `Goal ${this.format(goals.sugarGrams, 'g', 1)}`,
-      },
-      {
-        key: 'fiber',
-        label: 'Fiber',
-        value: this.format(totals.fiber, 'g', 1),
-        goal: 'No target set',
-      },
-    ];
-  });
-
-  protected quantity(productId: ProductId): number {
-    return this.state.quantity(productId);
-  }
+  protected readonly productRows = computed<ReadonlyArray<DailyFoodRowViewModel>>(() =>
+    this.filteredProducts().map((product) => ({
+      product,
+      nutrition: this.state.nutritionPer100g(product),
+      quantity: this.state.quantity(product.id),
+      total: this.state.selectedNutrition(product),
+    })),
+  );
 
   protected setCalorieTarget(event: Event): void {
     this.state.setCalorieTarget(this.inputValue(event));
@@ -386,11 +347,7 @@ export class DailyNutritionCalculatorComponent {
     this.state.resetPlan();
   }
 
-  protected foodTotal(product: Product): Nutrition {
-    return this.state.selectedNutrition(product);
-  }
-
-  protected goalCardClasses(toneClass: string): string {
+  private goalCardClasses(toneClass: string): string {
     return `grid min-h-36 content-between gap-3 rounded-lg border border-stone-900/10 bg-white p-4 shadow-sm border-t-4 border-t-${toneClass}`;
   }
 
@@ -423,7 +380,7 @@ export class DailyNutritionCalculatorComponent {
     };
   }
 
-  protected format(value: number, unit: string, maximumFractionDigits: number): string {
+  private format(value: number, unit: string, maximumFractionDigits: number): string {
     return `${new Intl.NumberFormat('en-US', { maximumFractionDigits }).format(value)} ${unit}`;
   }
 }
