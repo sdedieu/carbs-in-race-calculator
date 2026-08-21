@@ -83,6 +83,8 @@ export interface Nutrition {
   readonly calcium: number;
 }
 
+export type NutritionType = 'calories' | 'carbs' | 'fat' | 'sugar' | 'protein';
+
 export interface Product {
   readonly id: ProductId;
   readonly name: string;

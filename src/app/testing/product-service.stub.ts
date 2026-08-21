@@ -1,4 +1,4 @@
-import { computed, debounced, Provider, signal } from '@angular/core';
+import { computed, debounced, linkedSignal, Provider, signal } from '@angular/core';
 import { Nutrition, Product, ProductQuantities } from '../services/product.model';
 import { EMPTY_NUTRITION, ProductService } from '../services/product.service';
 import { rxResource } from '@angular/core/rxjs-interop';
@@ -111,11 +111,12 @@ export class ProductServiceStub {
     },
   });
 
-  productsResource = rxResource({
+  filteredProductsResource = rxResource({
     stream: () => {
       return of(this.catalog());
     },
   });
+  products = linkedSignal(() => this.filteredProductsResource.value);
   readonly dailyProducts = computed(() =>
     this.allProducts().filter((product) => product.type === 'daily' || product.type === 'both'),
   );

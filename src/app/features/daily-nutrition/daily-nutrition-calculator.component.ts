@@ -374,9 +374,11 @@ export class DailyNutritionCalculatorComponent {
           ? 'above target'
           : 'available in the range';
 
+    const type = status.type === 'calories' ? 'kcal' : 'g';
+
     return {
       ...status,
-      detail: `${this.format(status.toBoundary, 'kcal', 0)} ${suffix}`,
+      detail: `${this.format(status.toBoundary, type, 0)} ${suffix}`,
     };
   }
 

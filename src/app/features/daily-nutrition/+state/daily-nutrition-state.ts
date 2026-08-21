@@ -1,5 +1,11 @@
 import { computed, inject, Service, signal } from '@angular/core';
-import { Nutrition, Product, ProductId, ProductQuantities } from '../../../services/product.model';
+import {
+  Nutrition,
+  NutritionType,
+  Product,
+  ProductId,
+  ProductQuantities,
+} from '../../../services/product.model';
 import { EMPTY_NUTRITION, ProductService } from '../../../services/product.service';
 
 export interface DailyNutritionGoals {
@@ -18,6 +24,7 @@ export interface DailyNutritionStatus {
   readonly state: 'under target' | 'on target' | 'over target';
   readonly toBoundary: number;
   readonly progress: number;
+  readonly type: NutritionType;
 }
 
 @Service()
@@ -34,7 +41,7 @@ export class DailyNutritionState {
   readonly isLoading = computed(
     () =>
       this.productService.favoritesResource.isLoading() ||
-      this.productService.productsResource.isLoading(),
+      this.productService.filteredProductsResource.isLoading(),
   );
 
   readonly products = computed(() => this.productService.dailyProducts());
@@ -78,6 +85,7 @@ export class DailyNutritionState {
 
   readonly calorieStatus = computed<DailyNutritionStatus>(() => {
     return this.computeSatus(
+      'calories',
       this.totals().calories,
       this.goals().calorieMaximum,
       this.goals().calorieMinimum,
@@ -85,15 +93,16 @@ export class DailyNutritionState {
   });
 
   readonly proteinStatus = computed<DailyNutritionStatus>(() => {
-    return this.computeSatus(this.totals().protein, this.goals().proteinGrams);
+    return this.computeSatus('protein', this.totals().protein, this.goals().proteinGrams);
   });
 
   readonly fatStatus = computed<DailyNutritionStatus>(() => {
-    return this.computeSatus(this.totals().fat, this.goals().fatGrams);
+    return this.computeSatus('fat', this.totals().fat, this.goals().fatGrams);
   });
 
   readonly carbsStatus = computed<DailyNutritionStatus>(() => {
     return this.computeSatus(
+      'carbs',
       this.totals().carbs,
       this.goals().carbohydrateMaximum,
       this.goals().carbohydrateMinimum,
@@ -101,7 +110,7 @@ export class DailyNutritionState {
   });
 
   readonly sugarStatus = computed<DailyNutritionStatus>(() => {
-    return this.computeSatus(this.totals().sugar, this.goals().sugarGrams);
+    return this.computeSatus('sugar', this.totals().sugar, this.goals().sugarGrams);
   });
 
   quantity(productId: ProductId): number {
@@ -173,11 +182,17 @@ export class DailyNutritionState {
     return Math.min(maximum, Math.max(minimum, normalized));
   }
 
-  private computeSatus(value: number, max: number, min?: number): DailyNutritionStatus {
+  private computeSatus(
+    type: NutritionType,
+    value: number,
+    max: number,
+    min?: number,
+  ): DailyNutritionStatus {
     const progress = max > 0 ? Math.min(100, (value / max) * 100) : 0;
 
     if (value < (min ?? max)) {
       return {
+        type,
         state: 'under target',
         toBoundary: (min ?? max) - value,
         progress,
@@ -186,6 +201,7 @@ export class DailyNutritionState {
 
     if (value > max) {
       return {
+        type,
         state: 'over target',
         toBoundary: value - max,
         progress,
@@ -193,6 +209,7 @@ export class DailyNutritionState {
     }
 
     return {
+      type,
       state: 'on target',
       toBoundary: max - value,
       progress,

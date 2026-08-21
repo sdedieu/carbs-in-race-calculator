@@ -1,4 +1,12 @@
-import { computed, debounced, effect, inject, Injectable, signal } from '@angular/core';
+import {
+  computed,
+  debounced,
+  effect,
+  inject,
+  Injectable,
+  linkedSignal,
+  signal,
+} from '@angular/core';
 import { Nutrition, Product, ProductQuantities } from './product.model';
 import { EMPTY, map, Observable, of, tap } from 'rxjs';
 import {
@@ -55,7 +63,7 @@ export class ProductService {
     },
   });
 
-  productsResource = rxResource({
+  filteredProductsResource = rxResource<Product[], { search: string }>({
     params: () => ({
       search: this.searchLowerCase(),
     }),
@@ -81,11 +89,23 @@ export class ProductService {
     },
   });
 
+  products = linkedSignal<Product[] | undefined, Product[]>({
+    source: this.filteredProductsResource.value,
+    computation: (products, previousValue) => [
+      ...new Map(
+        [...(products ?? []), ...(previousValue?.value ?? [])].map((product) => [
+          product.id,
+          product,
+        ]),
+      ).values(),
+    ],
+  });
+
   readonly allProducts = computed<ReadonlyArray<Product>>(() => {
     const favoritesIds = this.favoritesResource.value()?.map((fav) => fav.id);
-    const withoutDuplicateProducts = this.productsResource
-      .value()
-      ?.filter((product) => !favoritesIds?.includes(product.id));
+    const withoutDuplicateProducts = this.products().filter(
+      (product) => !favoritesIds?.includes(product.id),
+    );
     return [...(withoutDuplicateProducts ?? []), ...(this.favoritesResource.value() ?? [])].sort(
       (a, b) => a.name.localeCompare(b.name),
     );

@@ -74,7 +74,11 @@ export class FuelPlanRowComponent {
   readonly quantityChange = output<string | number>();
 
   readonly nutrition = computed<Nutrition>(() => {
-    return this.product().nutritionPer100g ?? EMPTY_NUTRITION;
+    return (
+      (this.product().type === 'race'
+        ? this.product().nutritionPerServing
+        : this.product().nutritionPer100g) ?? EMPTY_NUTRITION
+    );
   });
 
   protected readonly productKindClasses = computed(() => PRODUCT_KIND_CLASSES[this.product().kind]);
