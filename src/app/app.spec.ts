@@ -30,9 +30,9 @@ describe('Fuel and nutrition application', () => {
     fixture.detectChanges();
 
     expect(normalizedText(page)).toContain('Daily fuel calculator');
-    setInputValue(getInputByLabel(page, 'Calorie target'), '3000');
+    setInputValue(getInputByLabel(page, 'BMR (kcal)'), '3000');
     fixture.detectChanges();
-    expect(normalizedText(page)).toContain('2,700–3,000 kcal');
+    expect(normalizedText(page)).toContain('0 kcal / 2,700 kcal');
 
     getButtonByName(page, 'Race fuel').click();
     fixture.detectChanges();
@@ -40,6 +40,6 @@ describe('Fuel and nutrition application', () => {
 
     getButtonByName(page, 'Everyday nutrition').click();
     fixture.detectChanges();
-    expect(getInputByLabel(page, 'Calorie target').value).toBe('3000');
+    expect(getInputByLabel(page, 'BMR (kcal)').value).toBe('3000');
   });
 });

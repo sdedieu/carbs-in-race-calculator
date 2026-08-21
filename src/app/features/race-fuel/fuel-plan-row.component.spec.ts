@@ -7,6 +7,7 @@ const PRODUCT: Product = {
   id: 'maurten-gel-160',
   brand: 'Maurten',
   name: 'Gel 160',
+  isFavorite: true,
   type: 'race',
   kind: 'gel',
   serving: '1 sachet, 65 g',

@@ -20,16 +20,16 @@ test('a user can configure both calculators without losing their settings', asyn
   await page.getByRole('button', { name: 'Everyday nutrition' }).click();
 
   await expect(page.getByRole('heading', { name: 'Daily fuel calculator' })).toBeVisible();
-  await page.getByLabel('Calorie target', { exact: true }).fill('3000');
+  await page.getByLabel('BMR (kcal)', { exact: true }).fill('3000');
   await page.getByLabel('Body mass (kg)', { exact: true }).fill('80');
 
-  await expect(page.getByText('2,700–3,000 kcal', { exact: true }).first()).toBeVisible();
-  await expect(page.getByText('335–410 g', { exact: true }).first()).toBeVisible();
+  await expect(page.getByText('0 kcal / 2,700 kcal', { exact: true })).toBeVisible();
+  await expect(page.getByText('0 g / 335–410 g', { exact: true })).toBeVisible();
 
   await page.getByRole('button', { name: 'Race fuel' }).click();
   await expect(page.getByLabel('Hours', { exact: true })).toHaveValue('5');
 
   await page.getByRole('button', { name: 'Everyday nutrition' }).click();
-  await expect(page.getByLabel('Calorie target', { exact: true })).toHaveValue('3000');
+  await expect(page.getByLabel('BMR (kcal)', { exact: true })).toHaveValue('3000');
   await expect(page.getByLabel('Body mass (kg)', { exact: true })).toHaveValue('80');
 });

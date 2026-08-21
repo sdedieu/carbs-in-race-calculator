@@ -30,8 +30,19 @@ export class DailyNutritionState {
     this.productService.createEmptyQuantities(this.productService.dailyProducts()),
   );
   readonly searchSignal = this.productService.search;
+  readonly searchLowerCase = this.productService.searchLowerCase;
+  readonly isLoading = computed(
+    () =>
+      this.productService.favoritesResource.isLoading() ||
+      this.productService.productsResource.isLoading(),
+  );
 
   readonly products = computed(() => this.productService.dailyProducts());
+  readonly filteredProducts = computed(() =>
+    this.products().filter((product) =>
+      product.name.toLocaleLowerCase().includes(this.searchLowerCase()),
+    ),
+  );
   readonly calorieTarget = computed(() => this.calorieTargetSignal());
   readonly bodyMassKg = computed(() => this.bodyMassKgSignal());
 
@@ -128,6 +139,14 @@ export class DailyNutritionState {
 
   resetPlan(): void {
     this.quantitiesSignal.set(this.productService.createEmptyQuantities(this.products()));
+  }
+
+  async favoriteClicked(productId: string): Promise<void> {
+    const product = this.products().find((product) => product.id === productId);
+    if (!product) throw new Error(`Product ${productId} does not exists`);
+    await (product.isFavorite
+      ? this.productService.removeAsFavorite(product)
+      : this.productService.addAsFavorite(product));
   }
 
   private addNutrition(left: Nutrition, right: Nutrition): Nutrition {

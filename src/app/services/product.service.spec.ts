@@ -6,6 +6,7 @@ import { Product } from './product.model';
 const firestoreMock = vi.hoisted(() => ({
   collection: vi.fn(),
   collectionData: vi.fn(),
+  deleteDoc: vi.fn(),
   doc: vi.fn(),
   endAt: vi.fn(),
   orderBy: vi.fn(),
@@ -18,6 +19,7 @@ vi.mock('@angular/fire/firestore', () => ({
   Firestore: class Firestore {},
   collection: firestoreMock.collection,
   collectionData: firestoreMock.collectionData,
+  deleteDoc: firestoreMock.deleteDoc,
   doc: firestoreMock.doc,
   endAt: firestoreMock.endAt,
   orderBy: firestoreMock.orderBy,
@@ -41,6 +43,7 @@ describe('ProductService', () => {
       of(reference.path === 'users/me/favorites' ? TEST_PRODUCTS : []),
     );
     firestoreMock.doc.mockImplementation((_firestore: object, path: string) => ({ path }));
+    firestoreMock.deleteDoc.mockResolvedValue(undefined);
     firestoreMock.query.mockImplementation((reference: unknown) => reference);
     firestoreMock.setDoc.mockResolvedValue(undefined);
 
@@ -55,7 +58,9 @@ describe('ProductService', () => {
 
   it('should expose Firestore products and filter them by daily and race use', () => {
     expect(firestoreMock.collection).toHaveBeenCalledWith(firestore, 'users/me/favorites');
-    expect(service.allProducts()).toEqual(TEST_PRODUCTS);
+    expect(service.allProducts()).toEqual(
+      TEST_PRODUCTS.map((product) => ({ ...product, isFavorite: true })),
+    );
     expect(service.dailyProducts()).toHaveLength(3);
     expect(service.raceProducts()).toHaveLength(3);
     expect(service.dailyProducts().every((product) => product.type !== 'race')).toBe(true);
@@ -145,6 +150,30 @@ describe('ProductService', () => {
       { path: 'users/me/favorites/maurten-gel-160' },
       gelData,
     );
+  });
+
+  it('should add a favorite under the product document id', async () => {
+    const banana = { ...findProduct(TEST_PRODUCTS, 'banana'), isFavorite: false };
+    const { id: _id, ...bananaData } = banana;
+
+    await service.addAsFavorite(banana);
+
+    expect(firestoreMock.doc).toHaveBeenCalledWith(firestore, 'users/me/favorites/banana');
+    expect(firestoreMock.setDoc).toHaveBeenCalledWith(
+      { path: 'users/me/favorites/banana' },
+      bananaData,
+    );
+  });
+
+  it('should remove the product favorite document', async () => {
+    const banana = findProduct(TEST_PRODUCTS, 'banana');
+
+    await service.removeAsFavorite(banana);
+
+    expect(firestoreMock.doc).toHaveBeenCalledWith(firestore, 'users/me/favorites/banana');
+    expect(firestoreMock.deleteDoc).toHaveBeenCalledWith({
+      path: 'users/me/favorites/banana',
+    });
   });
 });
 

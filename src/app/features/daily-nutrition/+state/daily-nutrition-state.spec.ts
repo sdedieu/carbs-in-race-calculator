@@ -1,5 +1,9 @@
 import { TestBed } from '@angular/core/testing';
-import { provideProductServiceStub } from '../../../testing/product-service.stub';
+import { ProductService } from '../../../services/product.service';
+import {
+  ProductServiceStub,
+  provideProductServiceStub,
+} from '../../../testing/product-service.stub';
 import { DailyNutritionState } from './daily-nutrition-state';
 
 describe('DailyNutritionState', () => {
@@ -81,5 +85,31 @@ describe('DailyNutritionState', () => {
       magnesium: 0,
       calcium: 0,
     });
+  });
+
+  it('adds a non-favorite product to favorites', async () => {
+    const productService = TestBed.inject(ProductService) as unknown as ProductServiceStub;
+    const addAsFavorite = vi.spyOn(productService, 'addAsFavorite');
+
+    await state.favoriteClicked('banana');
+
+    expect(addAsFavorite).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'banana', isFavorite: false }),
+    );
+    expect(state.products().find((product) => product.id === 'banana')?.isFavorite).toBe(true);
+  });
+
+  it('removes a favorite product from favorites', async () => {
+    const productService = TestBed.inject(ProductService) as unknown as ProductServiceStub;
+    const removeAsFavorite = vi.spyOn(productService, 'removeAsFavorite');
+
+    await state.favoriteClicked('rolled-oats');
+
+    expect(removeAsFavorite).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'rolled-oats', isFavorite: true }),
+    );
+    expect(state.products().find((product) => product.id === 'rolled-oats')?.isFavorite).toBe(
+      false,
+    );
   });
 });

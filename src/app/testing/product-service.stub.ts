@@ -1,24 +1,27 @@
-import { computed, Provider, signal } from '@angular/core';
+import { computed, debounced, Provider, signal } from '@angular/core';
 import { Nutrition, Product, ProductQuantities } from '../services/product.model';
 import { EMPTY_NUTRITION, ProductService } from '../services/product.service';
+import { rxResource } from '@angular/core/rxjs-interop';
+import { of } from 'rxjs';
 
 export const TEST_PRODUCTS: ReadonlyArray<Product> = [
   {
-    id: 'maurten-gel-160',
-    brand: 'Maurten',
-    name: 'Gel 160',
-    isFavorite: true,
-    type: 'race',
-    kind: 'gel',
-    serving: '1 sachet, 65 g',
-    servingGrams: 65,
-    nutritionPerServing: {
+    id: 'banana',
+    name: 'Banana',
+    isFavorite: false,
+    type: 'both',
+    kind: 'fruit',
+    serving: '1 medium peeled banana, about 120 g',
+    servingGrams: 120,
+    servingSuggestion: 'One medium peeled banana: about 120 g',
+    nutritionPer100g: {
       ...EMPTY_NUTRITION,
-      calories: 160,
-      carbs: 40,
-      sugar: 40,
-      salt: 0.08,
-      sodium: 32,
+      calories: 89,
+      carbs: 22.8,
+      sugar: 12.2,
+      fiber: 2.6,
+      fat: 0.3,
+      protein: 1.1,
     },
   },
   {
@@ -45,6 +48,37 @@ export const TEST_PRODUCTS: ReadonlyArray<Product> = [
     },
   },
   {
+    id: 'maurten-gel-160',
+    brand: 'Maurten',
+    name: 'Gel 160',
+    isFavorite: true,
+    type: 'race',
+    kind: 'gel',
+    serving: '1 sachet, 65 g',
+    servingGrams: 65,
+    nutritionPerServing: {
+      ...EMPTY_NUTRITION,
+      calories: 160,
+      carbs: 40,
+      sugar: 40,
+      salt: 0.08,
+      sodium: 32,
+    },
+  },
+  {
+    id: 'olive-oil',
+    name: 'Olive oil',
+    isFavorite: true,
+    type: 'daily',
+    kind: 'fat',
+    servingSuggestion: 'One tablespoon: about 14 g',
+    nutritionPer100g: {
+      ...EMPTY_NUTRITION,
+      calories: 828,
+      fat: 92,
+    },
+  },
+  {
     id: 'rolled-oats',
     name: 'Rolled oats',
     isFavorite: true,
@@ -61,38 +95,6 @@ export const TEST_PRODUCTS: ReadonlyArray<Product> = [
       protein: 16.9,
     },
   },
-  {
-    id: 'banana',
-    name: 'Banana',
-    isFavorite: true,
-    type: 'both',
-    kind: 'fruit',
-    serving: '1 medium peeled banana, about 120 g',
-    servingGrams: 120,
-    servingSuggestion: 'One medium peeled banana: about 120 g',
-    nutritionPer100g: {
-      ...EMPTY_NUTRITION,
-      calories: 89,
-      carbs: 22.8,
-      sugar: 12.2,
-      fiber: 2.6,
-      fat: 0.3,
-      protein: 1.1,
-    },
-  },
-  {
-    id: 'olive-oil',
-    name: 'Olive oil',
-    isFavorite: true,
-    type: 'daily',
-    kind: 'fat',
-    servingSuggestion: 'One tablespoon: about 14 g',
-    nutritionPer100g: {
-      ...EMPTY_NUTRITION,
-      calories: 828,
-      fat: 92,
-    },
-  },
 ];
 
 export class ProductServiceStub {
@@ -100,6 +102,20 @@ export class ProductServiceStub {
 
   readonly search = signal('');
   readonly allProducts = this.catalog.asReadonly();
+  readonly debouncedSearch = debounced(this.search, 300);
+  readonly searchLowerCase = computed(() => this.debouncedSearch.value().toLocaleLowerCase());
+
+  favoritesResource = rxResource({
+    stream: () => {
+      return of(this.catalog());
+    },
+  });
+
+  productsResource = rxResource({
+    stream: () => {
+      return of(this.catalog());
+    },
+  });
   readonly dailyProducts = computed(() =>
     this.allProducts().filter((product) => product.type === 'daily' || product.type === 'both'),
   );
@@ -153,8 +169,22 @@ export class ProductServiceStub {
     return Object.fromEntries(products.map((product) => [product.id, 0])) as ProductQuantities;
   }
 
+  async addAsFavorite(product: Product): Promise<void> {
+    this.setFavorite(product.id, true);
+  }
+
+  async removeAsFavorite(product: Product): Promise<void> {
+    this.setFavorite(product.id, false);
+  }
+
   private normalizeAmount(amount: number): number {
     return Number.isFinite(amount) ? Math.max(0, amount) : 0;
+  }
+
+  private setFavorite(productId: Product['id'], isFavorite: boolean): void {
+    this.catalog.update((products) =>
+      products.map((product) => (product.id === productId ? { ...product, isFavorite } : product)),
+    );
   }
 
   private scaleNutrition(nutrition: Nutrition, factor: number): Nutrition {

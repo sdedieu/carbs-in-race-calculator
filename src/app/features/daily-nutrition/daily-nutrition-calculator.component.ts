@@ -102,7 +102,10 @@ const HOST_BINDINGS = { class: 'block' };
             </strong>
           </div>
           <progress
-            class="h-2 w-full overflow-hidden rounded-full accent-teal-700"
+            [class]="
+              'h-2 w-full overflow-hidden rounded-full accent-teal-700 [&::-webkit-progress-bar]:bg-gray-200 ' +
+              calorieProgressColor()
+            "
             [class.accent-orange-600]="calorieStatus().state === 'over target'"
             [value]="calorieStatus().progress"
             max="100"
@@ -138,7 +141,7 @@ const HOST_BINDINGS = { class: 'block' };
             </div>
             <progress
               [class]="
-                'h-2 w-full overflow-hidden rounded-full accent-teal-700 [&::-webkit-progress-bar]:bg-gray-200 [&::-webkit-progress-value]:' +
+                'h-2 w-full overflow-hidden rounded-full accent-teal-700 [&::-webkit-progress-bar]:bg-gray-200 ' +
                 card.progressColor
               "
               [value]="card.progress"
@@ -180,7 +183,7 @@ const HOST_BINDINGS = { class: 'block' };
           </button>
         </div>
 
-        <div class="mb-3">
+        <div class="mb-3 relative w-fit">
           <input
             class="min-h-11 rounded-lg border border-stone-900/20 bg-white px-3 text-base font-extrabold text-stone-900 outline-none focus:border-teal-700 focus:ring-4 focus:ring-teal-700/15"
             type="search"
@@ -188,6 +191,28 @@ const HOST_BINDINGS = { class: 'block' };
             (input)="setSearch($event)"
             [value]="searchSignal()"
           />
+          @if (isLoading()) {
+            <svg
+              class="absolute top-3 right-8 size-5 animate-spin text-teal-600"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                class="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                stroke-width="4"
+              ></circle>
+              <path
+                class="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
+          }
         </div>
 
         <p class="mb-3 text-sm font-semibold text-stone-500">
@@ -203,6 +228,7 @@ const HOST_BINDINGS = { class: 'block' };
               [quantity]="quantity(product.id)"
               [total]="foodTotal(product)"
               (quantityChange)="setQuantity(product.id, $event)"
+              (favoriteClicked)="favoriteClicked(product.id)"
             />
           }
         </div>
@@ -213,12 +239,15 @@ const HOST_BINDINGS = { class: 'block' };
 export class DailyNutritionCalculatorComponent {
   protected readonly state = inject(DailyNutritionState);
 
-  protected readonly filteredProducts = this.state.products;
+  protected readonly filteredProducts = this.state.filteredProducts;
   protected readonly calorieTarget = this.state.calorieTarget;
   protected readonly bodyMassKg = this.state.bodyMassKg;
   protected readonly goals = this.state.goals;
   protected readonly totals = this.state.totals;
   protected readonly searchSignal = this.state.searchSignal;
+  protected readonly isLoading = this.state.isLoading;
+
+  protected readonly favoriteClicked = this.state.favoriteClicked.bind(this.state);
 
   protected readonly calorieStatus = computed<NutritionStatus>(() => {
     return this.computeStatus(this.state.calorieStatus());
@@ -233,7 +262,7 @@ export class DailyNutritionCalculatorComponent {
   });
 
   protected readonly carbsStatus = computed<NutritionStatus>(() => {
-    return this.computeStatus(this.state.sugarStatus());
+    return this.computeStatus(this.state.carbsStatus());
   });
 
   protected readonly sugarStatus = computed<NutritionStatus>(() => {
@@ -243,7 +272,7 @@ export class DailyNutritionCalculatorComponent {
   protected readonly goalStatusCards = computed<ReadonlyArray<GoalStatusCard>>(() => {
     const goals = this.goals();
     const totals = this.totals();
-    console.log(this.proteinStatus());
+
     return [
       {
         key: 'protein',
@@ -253,7 +282,7 @@ export class DailyNutritionCalculatorComponent {
         detail: '(2 g/kg body mass)',
         progress: this.proteinStatus().progress,
         progressDetail: this.proteinStatus().detail,
-        progressColor: 'bg-teal-600',
+        progressColor: '[&::-webkit-progress-value]:bg-teal-600',
         textColor: 'text-teal-600',
         color: 'teal-600',
       },
@@ -265,7 +294,7 @@ export class DailyNutritionCalculatorComponent {
         detail: `(1 g/kg body mass)`,
         progress: this.fatStatus().progress,
         progressDetail: this.fatStatus().detail,
-        progressColor: 'bg-amber-600',
+        progressColor: '[&::-webkit-progress-value]:bg-amber-600',
         textColor: 'text-amber-600',
         color: 'amber-500',
       },
@@ -277,19 +306,19 @@ export class DailyNutritionCalculatorComponent {
         detail: `(1 g/kg body mass)`,
         progress: this.sugarStatus().progress,
         progressDetail: this.sugarStatus().detail,
-        progressColor: 'bg-orange-600',
+        progressColor: '[&::-webkit-progress-value]:bg-orange-600',
         textColor: 'text-orange-600',
         color: 'orange-500',
       },
       {
         key: 'carbs',
         label: 'Carbohydrates',
-        goalValue: ``,
-        currentValue: `${this.format(totals.sugar, 'g', 1)}`,
+        goalValue: this.formatRange(goals.carbohydrateMinimum, goals.carbohydrateMaximum, 'g', 1),
+        currentValue: `${this.format(totals.carbs, 'g', 1)}`,
         detail: '(Calories left)',
         progress: this.carbsStatus().progress,
         progressDetail: '',
-        progressColor: 'bg-emerald-600',
+        progressColor: '[&::-webkit-progress-value]:bg-emerald-600',
         textColor: 'text-emerald-600',
         color: 'emerald-700',
       },
@@ -377,7 +406,7 @@ export class DailyNutritionCalculatorComponent {
     return `grid min-h-36 content-between gap-3 rounded-lg border border-stone-900/10 bg-white p-4 shadow-sm border-t-4 border-t-${toneClass}`;
   }
 
-  protected calorieStatusClasses(): string {
+  protected calorieStatusClasses = computed(() => {
     const base = 'grid gap-3 rounded-lg border p-4';
 
     return this.calorieStatus().state === 'under target'
@@ -385,7 +414,15 @@ export class DailyNutritionCalculatorComponent {
       : this.calorieStatus().state === 'over target'
         ? `${base} border-orange-600/30 bg-orange-50 text-orange-800`
         : `${base} border-teal-700/20 bg-teal-50 text-teal-800`;
-  }
+  });
+
+  protected calorieProgressColor = computed(() =>
+    this.calorieStatus().state === 'under target'
+      ? `[&::-webkit-progress-value]:bg-red-800`
+      : this.calorieStatus().state === 'over target'
+        ? `[&::-webkit-progress-value]:bg-orange-800`
+        : `[&::-webkit-progress-value]:bg-emerald-800`,
+  );
 
   private inputValue(event: Event): string {
     return (event.target as HTMLInputElement).value;

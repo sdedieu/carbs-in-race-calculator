@@ -1,6 +1,6 @@
-import { computed, debounced, inject, Injectable, signal } from '@angular/core';
+import { computed, debounced, effect, inject, Injectable, signal } from '@angular/core';
 import { Nutrition, Product, ProductQuantities } from './product.model';
-import { EMPTY, map, Observable, of } from 'rxjs';
+import { EMPTY, map, Observable, of, tap } from 'rxjs';
 import {
   Firestore,
   collection,
@@ -11,6 +11,7 @@ import {
   startAt,
   endAt,
   orderBy,
+  deleteDoc,
 } from '@angular/fire/firestore';
 import { rxResource } from '@angular/core/rxjs-interop';
 
@@ -35,7 +36,8 @@ export class ProductService {
   products$: Observable<Product[]> = EMPTY as Observable<Product[]>; // initialize with an empty observable
 
   readonly search = signal<string>('');
-  debouncedSearch = debounced(this.search, 300);
+  readonly debouncedSearch = debounced(this.search, 300);
+  readonly searchLowerCase = computed(() => this.debouncedSearch.value().toLocaleLowerCase());
 
   favoritesResource = rxResource({
     stream: () => {
@@ -55,7 +57,7 @@ export class ProductService {
 
   productsResource = rxResource({
     params: () => ({
-      search: this.debouncedSearch.value(),
+      search: this.searchLowerCase(),
     }),
     stream: ({ params: { search } }) => {
       const productsCollection = collection(this.firestore, 'foods');
@@ -72,15 +74,22 @@ export class ProductService {
         : of([]);
 
       return products$.pipe(
-        map((products) => products.map((product) => ({ ...product, isFavorite: false }))),
+        map((products: Product[]) =>
+          products.map((product) => ({ ...product, isFavorite: false })),
+        ),
       );
     },
   });
 
-  readonly allProducts = computed<ReadonlyArray<Product>>(() => [
-    ...(this.productsResource.value() ?? []),
-    ...(this.favoritesResource.value() ?? []),
-  ]);
+  readonly allProducts = computed<ReadonlyArray<Product>>(() => {
+    const favoritesIds = this.favoritesResource.value()?.map((fav) => fav.id);
+    const withoutDuplicateProducts = this.productsResource
+      .value()
+      ?.filter((product) => !favoritesIds?.includes(product.id));
+    return [...(withoutDuplicateProducts ?? []), ...(this.favoritesResource.value() ?? [])].sort(
+      (a, b) => a.name.localeCompare(b.name),
+    );
+  });
   readonly dailyProducts = computed<ReadonlyArray<Product>>(() =>
     this.allProducts().filter((product) => product.type === 'daily' || product.type === 'both'),
   );
@@ -142,6 +151,15 @@ export class ProductService {
 
   createEmptyQuantities(products: ReadonlyArray<Product> = this.allProducts()): ProductQuantities {
     return Object.fromEntries(products.map((product) => [product.id, 0])) as ProductQuantities;
+  }
+
+  addAsFavorite(product: Product): Promise<void> {
+    const { id, ...productData } = product;
+    return setDoc(doc(this.firestore, `users/me/favorites/${id}`), productData);
+  }
+
+  removeAsFavorite({ id }: Product): Promise<void> {
+    return deleteDoc(doc(this.firestore, `users/me/favorites/${id}`));
   }
 
   private normalizeAmount(amount: number): number {

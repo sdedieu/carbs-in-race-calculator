@@ -1,6 +1,11 @@
 import { TestBed } from '@angular/core/testing';
 import { Nutrition, Product } from '../../services/product.model';
-import { getInputByLabel, normalizedText, setInputValue } from '../../testing/dom-testing';
+import {
+  getButtonByName,
+  getInputByLabel,
+  normalizedText,
+  setInputValue,
+} from '../../testing/dom-testing';
 import { DailyFoodRowComponent } from './daily-food-row.component';
 
 const NUTRITION: Nutrition = {
@@ -21,6 +26,7 @@ const NUTRITION: Nutrition = {
 const PRODUCT: Product = {
   id: 'banana',
   name: 'Banana',
+  isFavorite: false,
   type: 'both',
   kind: 'fruit',
   servingSuggestion: 'One medium peeled banana: about 120 g',
@@ -77,5 +83,26 @@ describe('DailyFoodRowComponent', () => {
     setInputValue(input, '125');
 
     expect(quantityChange).toHaveBeenCalledWith('125');
+  });
+
+  it('exposes and emits favorite toggle requests', () => {
+    const fixture = TestBed.createComponent(DailyFoodRowComponent);
+    const favoriteClicked = vi.spyOn(fixture.componentInstance.favoriteClicked, 'emit');
+    fixture.componentRef.setInput('product', PRODUCT);
+    fixture.componentRef.setInput('nutrition', NUTRITION);
+    fixture.componentRef.setInput('quantity', 0);
+    fixture.componentRef.setInput('total', TOTAL);
+    fixture.detectChanges();
+
+    const favoriteButton = getButtonByName(fixture.nativeElement, 'Favorite Banana');
+
+    expect(favoriteButton.getAttribute('aria-pressed')).toBe('false');
+    favoriteButton.click();
+    expect(favoriteClicked).toHaveBeenCalledOnce();
+
+    fixture.componentRef.setInput('product', { ...PRODUCT, isFavorite: true });
+    fixture.detectChanges();
+
+    expect(favoriteButton.getAttribute('aria-pressed')).toBe('true');
   });
 });

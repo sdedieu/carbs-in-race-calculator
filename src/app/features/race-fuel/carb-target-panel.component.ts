@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 
 @Component({
   selector: 'app-carb-target-panel',
@@ -7,10 +7,15 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
     <div [class]="panelClasses()" data-test="carb-target">
       <div class="flex items-end justify-between gap-4">
         <span [class]="stateClasses()">{{ state() }}</span>
-        <strong class="text-lg whitespace-nowrap">{{ currentLabel() }} / {{ goalLabel() }}</strong>
+        <strong [class]="'text-lg whitespace-nowrap ' + stateTextColor()"
+          >{{ currentLabel() }} / {{ goalLabel() }}</strong
+        >
       </div>
       <progress
-        class="h-2 w-full overflow-hidden rounded-full accent-emerald-700"
+        [class]="
+          'h-2 w-full overflow-hidden rounded-full accent-emerald-700 [&::-webkit-progress-bar]:bg-gray-200 ' +
+          stateProgressColor()
+        "
         [class.accent-orange-600]="state() === 'over target'"
         [value]="progress()"
         max="100"
@@ -38,13 +43,24 @@ export class CarbTargetPanelComponent {
         : `${base} border-emerald-700/20 bg-emerald-50`;
   }
 
-  protected stateClasses(): string {
+  protected stateClasses = computed(() => {
     const base = 'text-xs font-black tracking-wide uppercase';
+    return `${base} ${this.stateTextColor()}`;
+  });
 
-    return this.state() === 'under target'
-      ? `${base} text-red-700`
+  protected stateTextColor = computed(() =>
+    this.state() === 'under target'
+      ? `text-red-800`
       : this.state() === 'over target'
-        ? `${base} text-orange-700`
-        : `${base} text-emerald-700`;
-  }
+        ? `text-orange-800`
+        : `text-emerald-800`,
+  );
+
+  protected stateProgressColor = computed(() =>
+    this.state() === 'under target'
+      ? `[&::-webkit-progress-value]:bg-red-800`
+      : this.state() === 'over target'
+        ? `[&::-webkit-progress-value]:bg-orange-800`
+        : `[&::-webkit-progress-value]:bg-emerald-800`,
+  );
 }
