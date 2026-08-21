@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { Nutrition, Product, ProductId } from '../../services/product.model';
+import { TargetStatusCardComponent } from '../../shared/ui/target-status-card.component';
 import { DailyNutritionState, DailyNutritionStatus } from './+state/daily-nutrition-state';
 import { DailyFoodRowComponent } from './daily-food-row.component';
 
@@ -33,7 +34,7 @@ const HOST_BINDINGS = { class: 'block' };
 
 @Component({
   selector: 'app-daily-nutrition-calculator',
-  imports: [DailyFoodRowComponent],
+  imports: [DailyFoodRowComponent, TargetStatusCardComponent],
   host: HOST_BINDINGS,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -91,28 +92,15 @@ const HOST_BINDINGS = { class: 'block' };
           </label>
         </div>
 
-        <div [class]="calorieStatusClasses()" data-test="daily-calorie-status">
-          <div class="flex items-end justify-between gap-4">
-            <span class="text-xs font-black tracking-wide uppercase">
-              {{ calorieStatus().state }}
-            </span>
-            <strong class="text-lg whitespace-nowrap">
-              {{ format(totals().calories, 'kcal', 0) }} /
-              {{ format(goals().calorieMinimum, 'kcal', 0) }}
-            </strong>
-          </div>
-          <progress
-            [class]="
-              'h-2 w-full overflow-hidden rounded-full accent-teal-700 [&::-webkit-progress-bar]:bg-gray-200 ' +
-              calorieProgressColor()
-            "
-            [class.accent-orange-600]="calorieStatus().state === 'over target'"
-            [value]="calorieStatus().progress"
-            max="100"
-            aria-label="Daily calorie target progress"
-          ></progress>
-          <small class="font-bold text-stone-600">{{ calorieStatus().detail }}</small>
-        </div>
+        <app-target-status-card
+          dataTest="daily-calorie-status"
+          [state]="calorieStatus().state"
+          [currentLabel]="format(totals().calories, 'kcal', 0)"
+          [goalLabel]="format(goals().calorieMinimum, 'kcal', 0)"
+          [detailLabel]="calorieStatus().detail"
+          [progress]="calorieStatus().progress"
+          progressLabel="Daily calorie target progress"
+        />
       </section>
 
       <section
@@ -405,24 +393,6 @@ export class DailyNutritionCalculatorComponent {
   protected goalCardClasses(toneClass: string): string {
     return `grid min-h-36 content-between gap-3 rounded-lg border border-stone-900/10 bg-white p-4 shadow-sm border-t-4 border-t-${toneClass}`;
   }
-
-  protected calorieStatusClasses = computed(() => {
-    const base = 'grid gap-3 rounded-lg border p-4';
-
-    return this.calorieStatus().state === 'under target'
-      ? `${base} border-red-500/30 bg-red-50 text-red-800`
-      : this.calorieStatus().state === 'over target'
-        ? `${base} border-orange-600/30 bg-orange-50 text-orange-800`
-        : `${base} border-teal-700/20 bg-teal-50 text-teal-800`;
-  });
-
-  protected calorieProgressColor = computed(() =>
-    this.calorieStatus().state === 'under target'
-      ? `[&::-webkit-progress-value]:bg-red-800`
-      : this.calorieStatus().state === 'over target'
-        ? `[&::-webkit-progress-value]:bg-orange-800`
-        : `[&::-webkit-progress-value]:bg-emerald-800`,
-  );
 
   private inputValue(event: Event): string {
     return (event.target as HTMLInputElement).value;

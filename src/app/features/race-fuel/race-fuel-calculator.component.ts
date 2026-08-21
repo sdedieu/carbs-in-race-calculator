@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 import { Nutrition, Product, ProductId } from '../../services/product.model';
 import { NumberFieldComponent } from '../../shared/ui/number-field.component';
 import { NutritionSummaryCardComponent } from '../../shared/ui/nutrition-summary-card.component';
-import { CarbTargetPanelComponent } from './carb-target-panel.component';
+import { TargetStatusCardComponent } from '../../shared/ui/target-status-card.component';
 import { FuelPlanRowComponent } from './fuel-plan-row.component';
 import { RaceFuelState } from './+state/race-fuel-state';
 
@@ -18,10 +18,10 @@ const HOST_BINDINGS = { class: 'block' };
 @Component({
   selector: 'app-race-fuel-calculator',
   imports: [
-    CarbTargetPanelComponent,
     FuelPlanRowComponent,
     NumberFieldComponent,
     NutritionSummaryCardComponent,
+    TargetStatusCardComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: HOST_BINDINGS,
@@ -73,13 +73,14 @@ const HOST_BINDINGS = { class: 'block' };
           />
         </div>
 
-        <app-carb-target-panel
+        <app-target-status-card
+          dataTest="carb-target"
           [state]="carbTarget().state"
           [currentLabel]="format(totals().carbs, 'g', 1)"
           [goalLabel]="format(carbTarget().goal, 'g', 0)"
-          [delta]="carbTarget().delta"
-          [deltaLabel]="carbTargetDeltaLabel()"
+          [detailLabel]="carbTargetDeltaLabel()"
           [progress]="carbTarget().progress"
+          progressLabel="Carbohydrate target progress"
         />
       </section>
 
